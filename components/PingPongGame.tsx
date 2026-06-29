@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { PlayerBoyAvatar } from "@/components/PlayerBoyAvatar";
+import { PlayerGirlAvatar } from "@/components/PlayerGirlAvatar";
+import {
+  drawBoyPlayer,
+  drawGirlPlayer,
+  getPlayerAvatarCenterY,
+  PLAYER_AVATAR_OFFSET,
+} from "@/lib/drawPlayers";
 import {
   BALL_SIZE,
   BALL_SPEED,
@@ -15,6 +22,7 @@ import {
   type PlayerSide,
   WINNING_SCORE,
 } from "@/lib/pingPong";
+import { useEffect, useRef, useState } from "react";
 
 const keysPressed = new Set<string>();
 
@@ -131,6 +139,17 @@ function drawGame(
     game.rightY,
     PADDLE_WIDTH,
     PADDLE_HEIGHT,
+  );
+
+  drawBoyPlayer(
+    context,
+    PLAYER_AVATAR_OFFSET.leftX,
+    getPlayerAvatarCenterY(game.leftY, PADDLE_HEIGHT),
+  );
+  drawGirlPlayer(
+    context,
+    PLAYER_AVATAR_OFFSET.rightX,
+    getPlayerAvatarCenterY(game.rightY, PADDLE_HEIGHT),
   );
 
   context.beginPath();
@@ -300,13 +319,23 @@ export function PingPongGame() {
       </div>
 
       <div className="grid w-full gap-4 rounded-2xl bg-white/80 p-6 text-left shadow-md sm:grid-cols-2">
-        <div>
-          <h2 className="text-lg font-bold text-indigo-900">Player 1 (left)</h2>
-          <p className="text-indigo-800">Move with W and S</p>
+        <div className="flex items-center gap-4">
+          <PlayerBoyAvatar className="h-24 w-auto shrink-0" />
+          <div>
+            <h2 className="text-lg font-bold text-indigo-900">Player 1 (left)</h2>
+            <p className="text-indigo-800">Boy with topi, white t-shirt, and black pants</p>
+            <p className="text-indigo-700">Move with W and S</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-bold text-indigo-900">Player 2 (right)</h2>
-          <p className="text-indigo-800">Move with Arrow Up and Arrow Down</p>
+        <div className="flex items-center gap-4">
+          <PlayerGirlAvatar className="h-24 w-auto shrink-0" />
+          <div>
+            <h2 className="text-lg font-bold text-indigo-900">Player 2 (right)</h2>
+            <p className="text-indigo-800">
+              Girl with hijab, pink cat t-shirt, and jeans
+            </p>
+            <p className="text-indigo-700">Move with Arrow Up and Arrow Down</p>
+          </div>
         </div>
       </div>
     </section>
