@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 export function Counter() {
@@ -24,8 +25,16 @@ export function Counter() {
       <button
         type="button"
         onClick={handleClick}
-        className="min-h-14 min-w-44 rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-orange-400 px-8 py-4 text-xl font-bold text-white shadow-md transition hover:scale-105 hover:shadow-lg active:scale-95"
+        aria-label="Click Me!"
+        className="flex min-h-14 min-w-44 items-center justify-center gap-3 rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-orange-400 px-8 py-4 text-xl font-bold text-white shadow-md transition hover:scale-105 hover:shadow-lg active:scale-95"
       >
+        <Image
+          src="/cat.png"
+          alt="Cute cat"
+          width={36}
+          height={36}
+          className="rounded-full"
+        />
         Click Me!
       </button>
     </section>
