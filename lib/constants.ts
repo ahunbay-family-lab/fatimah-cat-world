@@ -1,3 +1,3 @@
-export const SITE_NAME = "Family Lab";
+export const SITE_NAME = "Ping Pong";
 export const SITE_DESCRIPTION =
-  "A fun starter app for building projects in the Ahunbay Family Lab.";
+  "A two-player ping pong game built in the Ahunbay Family Lab.";
