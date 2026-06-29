@@ -1,9 +1,11 @@
+import { BackgroundCats } from "@/components/BackgroundCats";
 import { Counter } from "@/components/Counter";
 import { WelcomeAnimation } from "@/components/WelcomeAnimation";
 
 export default function Home() {
   return (
     <div className="relative flex min-h-full flex-1 flex-col items-center justify-center bg-gradient-to-br from-violet-200 via-fuchsia-100 to-orange-100 px-6 py-12">
+      <BackgroundCats />
       <WelcomeAnimation />
 
       <main className="relative z-10 flex w-full max-w-2xl flex-col items-center gap-10 text-center">
