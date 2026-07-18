@@ -1,4 +1,4 @@
-import { TrexGame } from "@/components/TrexGame";
+import { CatGame } from "@/components/CatGame";
 
 export default function Home() {
   return (
@@ -12,7 +12,7 @@ export default function Home() {
         className="pointer-events-none absolute inset-0 opacity-30 [background-image:repeating-linear-gradient(90deg,transparent,transparent_18px,#2f463214_18px,#2f463214_19px)]"
       />
       <main className="relative z-10 flex w-full flex-col items-center">
-        <TrexGame />
+        <CatGame />
       </main>
     </div>
   );
