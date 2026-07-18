@@ -8,6 +8,7 @@ import {
   formatScore,
   type Obstacle,
 } from "@/lib/catGame";
+import { drawFlagHat } from "@/lib/flagHat";
 import type { GameSprites } from "@/lib/sprites";
 
 export function drawSky(ctx: CanvasRenderingContext2D) {
@@ -93,12 +94,14 @@ export function drawCat(
     }
 
     drawImageCover(ctx, image, x, y + bob, CAT_WIDTH, CAT_HEIGHT);
+    drawFlagHat(ctx, x, y + bob, CAT_WIDTH, CAT_HEIGHT);
     return;
   }
 
   // Fallback while images load
   ctx.fillStyle = "#e08a3c";
   ctx.fillRect(x, y, CAT_WIDTH, CAT_HEIGHT);
+  drawFlagHat(ctx, x, y, CAT_WIDTH, CAT_HEIGHT);
 }
 
 /**

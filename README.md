@@ -2,7 +2,7 @@
 
 A **cat jump game** built in the Ahunbay Family Lab.
 
-Help a striped tabby cat leap over barking brown dogs. The longer you survive, the faster it gets!
+Help a striped tabby cat (wearing an East Turkistan flag hat) leap over barking brown dogs. The longer you survive, the faster it gets — and the dogs really bark!
 
 ---
 
@@ -70,6 +70,8 @@ components/CatGame.tsx    # Game loop, input, scoring
 lib/catGame.ts            # Sizes, speed, collision helpers
 lib/catDraw.ts            # Canvas drawing helpers (cat + dogs)
 lib/sprites.ts            # Loads high-res animal images
+lib/barkSound.ts          # Dog bark sound effects
+lib/flagHat.ts            # East Turkistan flag hat drawn on the cat
 public/sprites/           # Realistic cat (run cycle) and dog PNG sprites
 lib/constants.ts          # Site name and description
 styles/globals.css        # Global styles

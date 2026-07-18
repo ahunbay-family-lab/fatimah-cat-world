@@ -25,6 +25,7 @@ import {
   formatScore,
   type Obstacle,
 } from "@/lib/catGame";
+import { playDogBark, unlockAudio } from "@/lib/barkSound";
 import { loadGameSprites, type GameSprites } from "@/lib/sprites";
 
 type GameStatus = "ready" | "playing" | "gameover";
@@ -109,12 +110,14 @@ export function CatGame() {
   }
 
   function startGame() {
+    unlockAudio();
     resetRun();
     setStatus("playing");
     statusRef.current = "playing";
   }
 
   function jump() {
+    unlockAudio();
     if (statusRef.current === "ready" || statusRef.current === "gameover") {
       startGame();
       return;
@@ -223,6 +226,15 @@ export function CatGame() {
       if (frameRef.current % 4 === 0) {
         setScore(Math.floor(scoreRef.current));
       }
+
+      // Dogs bark when their mouth-open frame hits and they are on screen
+      const dogIsBarking = Math.floor(frameRef.current / 8) % 2 === 0;
+      const dogOnScreen = obstaclesRef.current.some(
+        (obstacle) => obstacle.x < GAME_WIDTH - 20 && obstacle.x + obstacle.width > 0,
+      );
+      if (dogIsBarking && dogOnScreen && frameRef.current % 8 === 0) {
+        playDogBark();
+      }
     }
 
     function render() {
@@ -272,7 +284,7 @@ export function CatGame() {
           Cat Runner
         </h1>
         <p className="mt-2 text-base text-[#3f5c48] sm:text-lg">
-          Jump over the barking dogs. Survive as long as you can.
+          Jump over the barking dogs. Listen for their woofs!
         </p>
       </header>
 
