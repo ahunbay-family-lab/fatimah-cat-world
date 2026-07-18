@@ -1,4 +1,6 @@
 import {
+  CAT_HEIGHT,
+  CAT_WIDTH,
   CAT_X,
   GAME_HEIGHT,
   GAME_WIDTH,
@@ -6,6 +8,7 @@ import {
   formatScore,
   type Obstacle,
 } from "@/lib/catGame";
+import type { GameSprites } from "@/lib/sprites";
 
 export function drawSky(ctx: CanvasRenderingContext2D) {
   const gradient = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
@@ -17,7 +20,7 @@ export function drawSky(ctx: CanvasRenderingContext2D) {
 
   ctx.fillStyle = "#f4c15d";
   ctx.beginPath();
-  ctx.arc(GAME_WIDTH - 70, 48, 28, 0, Math.PI * 2);
+  ctx.arc(GAME_WIDTH - 80, 52, 32, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -44,90 +47,52 @@ export function drawGround(ctx: CanvasRenderingContext2D, groundOffset: number) 
   }
 }
 
-/** Tabby cat: orange fur, black stripes, green eyes, white belly. */
+function drawImageCover(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const scale = Math.min(width / image.width, height / image.height);
+  const drawW = image.width * scale;
+  const drawH = image.height * scale;
+  const drawX = x + (width - drawW) / 2;
+  const drawY = y + height - drawH;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(image, drawX, drawY, drawW, drawH);
+}
+
+/** High-res tabby cat facing right (running direction). */
 export function drawCat(
   ctx: CanvasRenderingContext2D,
+  sprites: GameSprites | null,
   y: number,
   frame: number,
   isPlaying: boolean,
 ) {
   const x = CAT_X;
-  const legSwing = Math.floor(frame / 6) % 2;
-  const fur = "#e08a3c";
-  const stripe = "#1a1a1a";
-  const belly = "#ffffff";
+  const bob = isPlaying ? Math.sin(frame / 5) * 1.5 : 0;
 
-  // Tail
-  ctx.fillStyle = fur;
-  ctx.fillRect(x, y + 22, 10, 8);
-  ctx.fillStyle = stripe;
-  ctx.fillRect(x + 2, y + 24, 6, 3);
-
-  // Body
-  ctx.fillStyle = fur;
-  ctx.fillRect(x + 10, y + 16, 26, 22);
-  // White belly
-  ctx.fillStyle = belly;
-  ctx.fillRect(x + 16, y + 24, 14, 12);
-
-  // Black stripes on body
-  ctx.fillStyle = stripe;
-  ctx.fillRect(x + 14, y + 18, 3, 18);
-  ctx.fillRect(x + 22, y + 18, 3, 10);
-  ctx.fillRect(x + 30, y + 18, 3, 18);
-
-  // Head
-  ctx.fillStyle = fur;
-  ctx.fillRect(x + 28, y + 4, 18, 16);
-  // Ears
-  ctx.fillRect(x + 28, y, 6, 6);
-  ctx.fillRect(x + 40, y, 6, 6);
-  ctx.fillStyle = "#f2b8c4";
-  ctx.fillRect(x + 30, y + 2, 3, 3);
-  ctx.fillRect(x + 41, y + 2, 3, 3);
-
-  // Head stripe
-  ctx.fillStyle = stripe;
-  ctx.fillRect(x + 35, y + 4, 3, 10);
-
-  // Green eyes
-  ctx.fillStyle = "#3dbe4a";
-  ctx.fillRect(x + 32, y + 8, 4, 4);
-  ctx.fillRect(x + 40, y + 8, 4, 4);
-  ctx.fillStyle = "#0f1a12";
-  ctx.fillRect(x + 33, y + 9, 2, 2);
-  ctx.fillRect(x + 41, y + 9, 2, 2);
-
-  // Nose + mouth
-  ctx.fillStyle = "#f2b8c4";
-  ctx.fillRect(x + 37, y + 13, 3, 2);
-  ctx.fillStyle = stripe;
-  ctx.fillRect(x + 36, y + 16, 5, 1);
-
-  // Legs
-  ctx.fillStyle = fur;
-  if (isPlaying) {
-    if (legSwing === 0) {
-      ctx.fillRect(x + 14, y + 38, 8, 10);
-      ctx.fillRect(x + 28, y + 38, 8, 6);
-    } else {
-      ctx.fillRect(x + 14, y + 38, 8, 6);
-      ctx.fillRect(x + 28, y + 38, 8, 10);
-    }
-  } else {
-    ctx.fillRect(x + 14, y + 38, 8, 10);
-    ctx.fillRect(x + 28, y + 38, 8, 10);
+  if (sprites?.cat) {
+    drawImageCover(ctx, sprites.cat, x, y + bob, CAT_WIDTH, CAT_HEIGHT);
+    return;
   }
 
-  // Paws
-  ctx.fillStyle = belly;
-  ctx.fillRect(x + 14, y + 46, 8, 2);
-  ctx.fillRect(x + 28, y + 46, 8, 2);
+  // Fallback while images load
+  ctx.fillStyle = "#e08a3c";
+  ctx.fillRect(x, y, CAT_WIDTH, CAT_HEIGHT);
 }
 
-/** Brown dog with droopy ears, black eyes, and a barking mouth. */
+/**
+ * High-res brown dog facing LEFT toward the cat.
+ * Alternates bark / closed mouth frames.
+ */
 export function drawDog(
   ctx: CanvasRenderingContext2D,
+  sprites: GameSprites | null,
   obstacle: Obstacle,
   frame: number,
 ) {
@@ -135,63 +100,30 @@ export function drawDog(
   const h = obstacle.height;
   const w = obstacle.width;
   const y = GROUND_Y - h;
-  const fur = "#8b5a2b";
-  const darkFur = "#5c3a18";
   const barking = Math.floor(frame / 8) % 2 === 0;
 
-  // Body
-  ctx.fillStyle = fur;
-  ctx.fillRect(x + 6, y + h * 0.35, w - 10, h * 0.45);
+  if (sprites) {
+    const image = barking ? sprites.dogBark : sprites.dog;
+    drawImageCover(ctx, image, x, y, w, h);
 
-  // Head
-  ctx.fillRect(x + w - 22, y + 4, 18, 16);
-
-  // Droopy ears
-  ctx.fillStyle = darkFur;
-  ctx.fillRect(x + w - 24, y + 8, 6, 16);
-  ctx.fillRect(x + w - 8, y + 8, 6, 16);
-
-  // Black eyes
-  ctx.fillStyle = "#111111";
-  ctx.fillRect(x + w - 18, y + 9, 3, 3);
-  ctx.fillRect(x + w - 12, y + 9, 3, 3);
-
-  // Snout
-  ctx.fillStyle = "#c48952";
-  ctx.fillRect(x + w - 16, y + 13, 10, 7);
-
-  // Nose
-  ctx.fillStyle = "#111111";
-  ctx.fillRect(x + w - 8, y + 14, 3, 3);
-
-  // Barking mouth
-  if (barking) {
-    ctx.fillStyle = "#3a1f12";
-    ctx.fillRect(x + w - 14, y + 18, 8, 4);
-    // Bark lines
-    ctx.strokeStyle = "#3a1f12";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(x + w - 2, y + 12);
-    ctx.lineTo(x + w + 4, y + 10);
-    ctx.moveTo(x + w - 2, y + 16);
-    ctx.lineTo(x + w + 5, y + 16);
-    ctx.moveTo(x + w - 2, y + 20);
-    ctx.lineTo(x + w + 4, y + 22);
-    ctx.stroke();
-  } else {
-    ctx.fillStyle = "#3a1f12";
-    ctx.fillRect(x + w - 14, y + 19, 8, 2);
+    if (barking) {
+      // Bark lines in front of the dog's face (left side)
+      ctx.strokeStyle = "#3a1f12";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + 4, y + h * 0.28);
+      ctx.lineTo(x - 8, y + h * 0.22);
+      ctx.moveTo(x + 4, y + h * 0.36);
+      ctx.lineTo(x - 10, y + h * 0.36);
+      ctx.moveTo(x + 4, y + h * 0.44);
+      ctx.lineTo(x - 8, y + h * 0.5);
+      ctx.stroke();
+    }
+    return;
   }
 
-  // Legs
-  ctx.fillStyle = fur;
-  ctx.fillRect(x + 10, y + h - 12, 7, 12);
-  ctx.fillRect(x + w - 18, y + h - 12, 7, 12);
-
-  // Tail
-  ctx.fillStyle = darkFur;
-  ctx.fillRect(x, y + h * 0.4, 8, 5);
+  ctx.fillStyle = "#8b5a2b";
+  ctx.fillRect(x, y, w, h);
 }
 
 type HudStatus = "ready" | "playing" | "gameover";
@@ -216,7 +148,11 @@ export function drawHud(
     ctx.font = "bold 22px ui-monospace, SFMono-Regular, Menlo, monospace";
     ctx.fillText("Press Space to start", GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10);
     ctx.font = "14px ui-monospace, SFMono-Regular, Menlo, monospace";
-    ctx.fillText("Jump over the barking dogs!", GAME_WIDTH / 2, GAME_HEIGHT / 2 + 16);
+    ctx.fillText(
+      "Jump over the barking dogs!",
+      GAME_WIDTH / 2,
+      GAME_HEIGHT / 2 + 16,
+    );
   }
 
   if (status === "gameover") {
@@ -224,6 +160,10 @@ export function drawHud(
     ctx.font = "bold 26px ui-monospace, SFMono-Regular, Menlo, monospace";
     ctx.fillText("GAME OVER", GAME_WIDTH / 2, GAME_HEIGHT / 2 - 8);
     ctx.font = "14px ui-monospace, SFMono-Regular, Menlo, monospace";
-    ctx.fillText("Press Space or Enter to retry", GAME_WIDTH / 2, GAME_HEIGHT / 2 + 18);
+    ctx.fillText(
+      "Press Space or Enter to retry",
+      GAME_WIDTH / 2,
+      GAME_HEIGHT / 2 + 18,
+    );
   }
 }

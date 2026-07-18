@@ -25,6 +25,7 @@ import {
   formatScore,
   type Obstacle,
 } from "@/lib/catGame";
+import { loadGameSprites, type GameSprites } from "@/lib/sprites";
 
 type GameStatus = "ready" | "playing" | "gameover";
 
@@ -51,6 +52,20 @@ function writeHighScore(value: number) {
   }
 }
 
+function setupHiDpiCanvas(
+  canvas: HTMLCanvasElement,
+  context: CanvasRenderingContext2D,
+) {
+  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.floor(GAME_WIDTH * ratio);
+  canvas.height = Math.floor(GAME_HEIGHT * ratio);
+  canvas.style.width = `${GAME_WIDTH}px`;
+  canvas.style.height = `${GAME_HEIGHT}px`;
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+}
+
 export function CatGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<GameStatus>("ready");
@@ -71,6 +86,7 @@ export function CatGame() {
   const frameRef = useRef(0);
   const groundOffsetRef = useRef(0);
   const spawnTimerRef = useRef(0);
+  const spritesRef = useRef<GameSprites | null>(null);
 
   useEffect(() => {
     highScoreRef.current = highScore;
@@ -134,8 +150,20 @@ export function CatGame() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const context: CanvasRenderingContext2D = ctx;
+    setupHiDpiCanvas(canvas, context);
 
     let animationId = 0;
+    let cancelled = false;
+
+    loadGameSprites()
+      .then((sprites) => {
+        if (!cancelled) {
+          spritesRef.current = sprites;
+        }
+      })
+      .catch((error: unknown) => {
+        console.error(error);
+      });
 
     function endGame() {
       statusRef.current = "gameover";
@@ -201,12 +229,14 @@ export function CatGame() {
       drawSky(context);
       drawGround(context, groundOffsetRef.current);
 
+      const sprites = spritesRef.current;
       for (const obstacle of obstaclesRef.current) {
-        drawDog(context, obstacle, frameRef.current);
+        drawDog(context, sprites, obstacle, frameRef.current);
       }
 
       drawCat(
         context,
+        sprites,
         catYRef.current,
         frameRef.current,
         statusRef.current === "playing",
@@ -227,11 +257,14 @@ export function CatGame() {
 
     render();
     animationId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(animationId);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(animationId);
+    };
   }, []);
 
   return (
-    <section className="flex w-full max-w-4xl flex-col items-center gap-5">
+    <section className="flex w-full max-w-5xl flex-col items-center gap-5">
       <header className="text-center">
         <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight text-[#1f3d2a] sm:text-5xl">
           Cat Runner
