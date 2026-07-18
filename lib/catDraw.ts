@@ -48,8 +48,7 @@ export function drawGround(ctx: CanvasRenderingContext2D, groundOffset: number) 
   }
 }
 
-function drawImageCover(
-  ctx: CanvasRenderingContext2D,
+function getSpriteDrawRect(
   image: HTMLImageElement,
   x: number,
   y: number,
@@ -59,8 +58,29 @@ function drawImageCover(
   const scale = Math.min(width / image.width, height / image.height);
   const drawW = image.width * scale;
   const drawH = image.height * scale;
-  const drawX = x + (width - drawW) / 2;
-  const drawY = y + height - drawH;
+  return {
+    drawX: x + (width - drawW) / 2,
+    drawY: y + height - drawH,
+    drawW,
+    drawH,
+  };
+}
+
+function drawImageCover(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const { drawX, drawY, drawW, drawH } = getSpriteDrawRect(
+    image,
+    x,
+    y,
+    width,
+    height,
+  );
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(image, drawX, drawY, drawW, drawH);
@@ -93,15 +113,22 @@ export function drawCat(
       image = sprites.catRuns[1];
     }
 
-    drawImageCover(ctx, image, x, y + bob, CAT_WIDTH, CAT_HEIGHT);
-    drawFlagHat(ctx, x, y + bob, CAT_WIDTH, CAT_HEIGHT);
+    const catYPos = y + bob;
+    drawImageCover(ctx, image, x, catYPos, CAT_WIDTH, CAT_HEIGHT);
+    const spriteRect = getSpriteDrawRect(image, x, catYPos, CAT_WIDTH, CAT_HEIGHT);
+    drawFlagHat(ctx, spriteRect);
     return;
   }
 
   // Fallback while images load
   ctx.fillStyle = "#e08a3c";
   ctx.fillRect(x, y, CAT_WIDTH, CAT_HEIGHT);
-  drawFlagHat(ctx, x, y, CAT_WIDTH, CAT_HEIGHT);
+  drawFlagHat(ctx, {
+    drawX: x,
+    drawY: y,
+    drawW: CAT_WIDTH,
+    drawH: CAT_HEIGHT,
+  });
 }
 
 /**
