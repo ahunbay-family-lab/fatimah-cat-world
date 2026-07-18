@@ -1,3 +1,3 @@
-export const SITE_NAME = "Ping Pong";
+export const SITE_NAME = "T-Rex Runner";
 export const SITE_DESCRIPTION =
-  "A two-player ping pong game built in the Ahunbay Family Lab.";
+  "A Chrome-style dinosaur jump game built in the Ahunbay Family Lab.";

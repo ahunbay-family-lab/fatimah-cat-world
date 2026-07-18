@@ -1,12 +1,12 @@
 # Getting Started
 
-Welcome to your new Family Lab app! This guide walks you through the first steps.
+Welcome to **T-Rex Runner**! This guide walks you through the first steps.
 
 ## What you have
 
 - A **Next.js** web app (React + TypeScript)
 - **Tailwind CSS** for styling
-- A starter page with a welcome message, button, and counter
+- A canvas T-Rex game: jump, dodge cacti, beat your high score
 - Automatic checks when you push code to GitHub
 
 ## First commands
@@ -22,9 +22,10 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## What to try first
 
-1. Open `app/page.tsx` and change the welcome message.
-2. Open `components/Counter.tsx` and change the button text.
-3. Save the file and watch the page update automatically.
+1. Open `lib/trexGame.ts` and change `JUMP_VELOCITY` to jump higher (try `-14`).
+2. Open `lib/trexGame.ts` and change `BASE_SPEED` to make the game faster or slower.
+3. Open `lib/trexDraw.ts` and change the dino color (`#3d5a40`) to your favorite color.
+4. Save the file and watch the page update automatically.
 
 ## When you are stuck
 
@@ -34,8 +35,8 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Next steps
 
-- Add a new page
-- Change colors in `styles/globals.css`
-- Build something fun that solves a real problem
+- Add flying pterodactyls as a second obstacle type
+- Add a duck / crouch move
+- Change the sky colors for night mode
 
-Happy building!
+Have fun building!
