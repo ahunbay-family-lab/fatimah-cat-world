@@ -1,8 +1,8 @@
-# Ping Pong
+# T-Rex Runner
 
-A **two-player ping pong game** built in the Ahunbay Family Lab.
+A **dinosaur jump game** inspired by the Chrome offline T-Rex runner, built in the Ahunbay Family Lab.
 
-Play on one keyboard with a friend. Move your paddle, bounce the ball, and be the first to score 7 points!
+Press Space (or tap) to jump over cacti. The longer you survive, the faster it gets!
 
 ---
 
@@ -28,12 +28,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Controls
 
-| Player | Side | Keys |
-|--------|------|------|
-| Player 1 | Left paddle | `W` (up), `S` (down) |
-| Player 2 | Right paddle | `Arrow Up`, `Arrow Down` |
+| Action | Keys / Input |
+|--------|--------------|
+| Start / Jump | `Space`, `↑`, tap, or click |
+| Restart after game over | `Space`, `Enter`, or the Play again button |
 
-Click **Start Game** to begin. First player to **7 points** wins!
+Your best score is saved in the browser.
 
 ---
 
@@ -66,8 +66,9 @@ Your game will be live in about a minute.
 
 ```
 app/page.tsx              # Home page with the game
-components/PingPongGame.tsx  # The game (canvas, controls, scoring)
-lib/pingPong.ts           # Game constants and helpers
+components/TrexGame.tsx   # Game loop, input, scoring
+lib/trexGame.ts           # Sizes, speed, collision helpers
+lib/trexDraw.ts           # Canvas drawing helpers
 lib/constants.ts          # Site name and description
 styles/globals.css        # Global styles
 ```
