@@ -1,6 +1,8 @@
-/** Dog bark sound effects using the Web Audio API (no audio files needed). */
+/** Dog bark sounds loaded from generated WAV files. */
 
 let audioContext: AudioContext | null = null;
+let barkBuffers: AudioBuffer[] = [];
+let loadPromise: Promise<void> | null = null;
 let lastBarkAt = 0;
 
 function getAudioContext(): AudioContext | null {
@@ -15,6 +17,30 @@ function getAudioContext(): AudioContext | null {
   return audioContext;
 }
 
+async function decodeBark(url: string, ctx: AudioContext): Promise<AudioBuffer> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load ${url}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  return ctx.decodeAudioData(arrayBuffer);
+}
+
+/** Preload bark WAV files. Safe to call multiple times. */
+export function loadBarkSounds(): Promise<void> {
+  if (loadPromise) return loadPromise;
+
+  loadPromise = (async () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const urls = ["/sounds/bark1.wav", "/sounds/bark2.wav", "/sounds/bark3.wav"];
+    barkBuffers = await Promise.all(urls.map((url) => decodeBark(url, ctx)));
+  })();
+
+  return loadPromise;
+}
+
 /** Call on the first tap / key press so the browser allows sound. */
 export function unlockAudio() {
   const ctx = getAudioContext();
@@ -22,70 +48,10 @@ export function unlockAudio() {
   if (ctx.state === "suspended") {
     void ctx.resume();
   }
+  void loadBarkSounds();
 }
 
-function playNoiseBurst(
-  ctx: AudioContext,
-  startTime: number,
-  duration: number,
-  frequency: number,
-  gainValue: number,
-) {
-  const bufferSize = Math.floor(ctx.sampleRate * duration);
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    const fade = 1 - i / bufferSize;
-    data[i] = (Math.random() * 2 - 1) * fade;
-  }
-
-  const source = ctx.createBufferSource();
-  source.buffer = buffer;
-
-  const filter = ctx.createBiquadFilter();
-  filter.type = "bandpass";
-  filter.frequency.value = frequency;
-  filter.Q.value = 1.2;
-
-  const gain = ctx.createGain();
-  gain.gain.setValueAtTime(gainValue, startTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-  source.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
-  source.start(startTime);
-  source.stop(startTime + duration);
-}
-
-function playTone(
-  ctx: AudioContext,
-  startTime: number,
-  duration: number,
-  frequency: number,
-  gainValue: number,
-) {
-  const osc = ctx.createOscillator();
-  osc.type = "square";
-  osc.frequency.setValueAtTime(frequency, startTime);
-  osc.frequency.exponentialRampToValueAtTime(frequency * 0.6, startTime + duration);
-
-  const filter = ctx.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.value = 900;
-
-  const gain = ctx.createGain();
-  gain.gain.setValueAtTime(gainValue, startTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-  osc.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(startTime);
-  osc.stop(startTime + duration);
-}
-
-/** Play a short “woof / bark” if enough time has passed since the last one. */
+/** Play a realistic dog bark if enough time has passed since the last one. */
 export function playDogBark(force = false) {
   const ctx = getAudioContext();
   if (!ctx) return;
@@ -95,16 +61,26 @@ export function playDogBark(force = false) {
     return;
   }
 
+  if (barkBuffers.length === 0) {
+    void loadBarkSounds().then(() => playDogBark(force));
+    return;
+  }
+
   const now = performance.now();
-  if (!force && now - lastBarkAt < 420) return;
+  if (!force && now - lastBarkAt < 380) return;
   lastBarkAt = now;
 
-  const t = ctx.currentTime;
-  const pitch = 0.85 + Math.random() * 0.35;
+  const buffer = barkBuffers[Math.floor(Math.random() * barkBuffers.length)];
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
 
-  // Two-part bark: “ruff” then a shorter follow-up
-  playNoiseBurst(ctx, t, 0.12, 700 * pitch, 0.35);
-  playTone(ctx, t, 0.1, 180 * pitch, 0.18);
-  playNoiseBurst(ctx, t + 0.1, 0.09, 520 * pitch, 0.28);
-  playTone(ctx, t + 0.1, 0.08, 140 * pitch, 0.12);
+  const gain = ctx.createGain();
+  gain.gain.value = 0.75 + Math.random() * 0.15;
+
+  // Slight pitch variation per bark
+  source.playbackRate.value = 0.92 + Math.random() * 0.18;
+
+  source.connect(gain);
+  gain.connect(ctx.destination);
+  source.start();
 }

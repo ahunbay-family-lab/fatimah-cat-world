@@ -1,5 +1,5 @@
 /**
- * Draws a large hat with the East Turkistan flag (Kökbayraq):
+ * Draws a hat with the East Turkistan flag (Kökbayraq):
  * light blue field, white crescent, white star.
  */
 
@@ -36,17 +36,15 @@ export function drawEastTurkistanFlag(
 ) {
   ctx.save();
 
-  // Thick white border so the flag stays extremely visible
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(x - 3, y - 3, width + 6, height + 6);
+  ctx.fillRect(x - 2, y - 2, width + 4, height + 4);
   ctx.strokeStyle = "#003366";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(x - 3, y - 3, width + 6, height + 6);
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x - 2, y - 2, width + 4, height + 4);
 
   ctx.fillStyle = FLAG_BLUE;
   ctx.fillRect(x, y, width, height);
 
-  // Crescent (two overlapping circles)
   const cx = x + width * 0.38;
   const cy = y + height * 0.5;
   const outerR = Math.min(width, height) * 0.3;
@@ -62,7 +60,6 @@ export function drawEastTurkistanFlag(
   ctx.arc(cx + outerR * 0.38, cy - outerR * 0.08, innerR, 0, Math.PI * 2);
   ctx.fill();
 
-  // Five-pointed star to the right of the crescent
   ctx.fillStyle = "#ffffff";
   const starSize = Math.min(width, height) * 0.18;
   drawStar(ctx, x + width * 0.64, y + height * 0.42, 5, starSize, starSize * 0.4);
@@ -70,10 +67,7 @@ export function drawEastTurkistanFlag(
   ctx.restore();
 }
 
-/**
- * Oversized hat on the cat’s head with a huge East Turkistan flag badge.
- * Drawn above the sprite so it stays extremely visible.
- */
+/** Hat sized to sit on the cat’s head with a visible flag badge. */
 export function drawFlagHat(
   ctx: CanvasRenderingContext2D,
   catX: number,
@@ -81,40 +75,36 @@ export function drawFlagHat(
   catWidth: number,
   catHeight: number,
 ) {
-  // Sit the hat on the upper-right head area (cat faces right)
-  const hatCenterX = catX + catWidth * 0.7;
-  const hatTop = catY - catHeight * 0.55;
-  const brimWidth = catWidth * 0.85;
-  const crownWidth = catWidth * 0.72;
-  const crownHeight = catHeight * 0.48;
+  const hatCenterX = catX + catWidth * 0.68;
+  const hatTop = catY - catHeight * 0.22;
+  const brimWidth = catWidth * 0.52;
+  const crownWidth = catWidth * 0.46;
+  const crownHeight = catHeight * 0.26;
 
   ctx.save();
 
-  // Soft shadow under brim
-  ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
   ctx.beginPath();
   ctx.ellipse(
     hatCenterX,
-    hatTop + crownHeight + 7,
-    brimWidth * 0.5,
-    6,
+    hatTop + crownHeight + 4,
+    brimWidth * 0.48,
+    4,
     0,
     0,
     Math.PI * 2,
   );
   ctx.fill();
 
-  // Hat crown
   ctx.fillStyle = "#1a1a1a";
   ctx.fillRect(hatCenterX - crownWidth / 2, hatTop, crownWidth, crownHeight);
 
-  // Rounded top of crown
   ctx.beginPath();
   ctx.ellipse(
     hatCenterX,
-    hatTop + 4,
+    hatTop + 3,
     crownWidth / 2,
-    8,
+    5,
     0,
     Math.PI,
     0,
@@ -122,37 +112,24 @@ export function drawFlagHat(
   );
   ctx.fill();
 
-  // Brim
   ctx.fillStyle = "#111111";
   ctx.beginPath();
   ctx.ellipse(
     hatCenterX,
     hatTop + crownHeight,
     brimWidth / 2,
-    8,
+    5,
     0,
     0,
     Math.PI * 2,
   );
   ctx.fill();
 
-  // Huge flag badge covering most of the hat front
-  const flagW = crownWidth * 0.92;
-  const flagH = crownHeight * 0.82;
+  const flagW = crownWidth * 0.88;
+  const flagH = crownHeight * 0.78;
   const flagX = hatCenterX - flagW / 2;
-  const flagY = hatTop + crownHeight * 0.1;
+  const flagY = hatTop + crownHeight * 0.12;
   drawEastTurkistanFlag(ctx, flagX, flagY, flagW, flagH);
-
-  // Extra tall flag on a pole — impossible to miss
-  const poleX = hatCenterX + crownWidth * 0.48;
-  const poleTop = hatTop - 28;
-  ctx.strokeStyle = "#444444";
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.moveTo(poleX, hatTop + 6);
-  ctx.lineTo(poleX, poleTop);
-  ctx.stroke();
-  drawEastTurkistanFlag(ctx, poleX + 1, poleTop, 34, 22);
 
   ctx.restore();
 }
