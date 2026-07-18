@@ -24,7 +24,7 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 1. Open `lib/catGame.ts` and change `JUMP_VELOCITY` to jump higher (try `-14`).
 2. Open `lib/catGame.ts` and change `BASE_SPEED` to make the game faster or slower.
-3. Open `public/sprites/` and look at the high-res cat and dog images used in the game.
+3. Open `public/sprites/` and look at `cat-run-1.png` through `cat-run-4.png` — those make the cat’s legs move.
 4. Save the file and watch the page update automatically.
 
 ## When you are stuck
