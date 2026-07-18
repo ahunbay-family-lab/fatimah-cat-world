@@ -1,9 +1,16 @@
 /**
  * Draws a baseball cap on the cat with the East Turkistan flag (Kökbayraq).
- * The cap sits on the cat’s head — not floating above it.
+ * Positioned using the cat sprite’s real drawn bounds so it sits on the head.
  */
 
 const FLAG_BLUE = "#0099FF";
+
+export type CatSpriteRect = {
+  drawX: number;
+  drawY: number;
+  drawW: number;
+  drawH: number;
+};
 
 function drawStar(
   ctx: CanvasRenderingContext2D,
@@ -66,80 +73,76 @@ export function drawEastTurkistanFlag(
   ctx.restore();
 }
 
-/** Baseball cap with East Turkistan flag, anchored on the cat’s head. */
-export function drawFlagHat(
-  ctx: CanvasRenderingContext2D,
-  catX: number,
-  catY: number,
-  catWidth: number,
-  catHeight: number,
-) {
-  // Head area: cat faces right, so the skull is upper-right of the sprite box
-  const headCenterX = catX + catWidth * 0.7;
-  const headTopY = catY + catHeight * 0.04;
-  const crownW = catWidth * 0.42;
-  const crownH = catHeight * 0.2;
-  const crownLeft = headCenterX - crownW * 0.45;
-  const crownTop = headTopY;
+/** Baseball cap with East Turkistan flag, anchored on the cat’s drawn head. */
+export function drawFlagHat(ctx: CanvasRenderingContext2D, rect: CatSpriteRect) {
+  const { drawX, drawY, drawW, drawH } = rect;
+
+  // Head sits upper-right in the sprite (cat faces right)
+  const headCenterX = drawX + drawW * 0.8;
+  const brimY = drawY + drawH * 0.19;
+  const crownW = drawW * 0.34;
+  const crownH = drawH * 0.17;
+  const crownLeft = headCenterX - crownW * 0.5;
+  const crownTop = brimY - crownH + 2;
 
   ctx.save();
 
-  // Cap crown (sits on top of head)
+  // Cap crown — overlaps the top of the skull
   ctx.fillStyle = "#1c1c1c";
   ctx.beginPath();
-  ctx.moveTo(crownLeft, crownTop + crownH);
-  ctx.lineTo(crownLeft, crownTop + crownH * 0.25);
+  ctx.moveTo(crownLeft, brimY);
+  ctx.lineTo(crownLeft, crownTop + crownH * 0.3);
   ctx.quadraticCurveTo(
     headCenterX,
-    crownTop - crownH * 0.15,
+    crownTop - crownH * 0.08,
     crownLeft + crownW,
-    crownTop + crownH * 0.25,
+    crownTop + crownH * 0.3,
   );
-  ctx.lineTo(crownLeft + crownW, crownTop + crownH);
+  ctx.lineTo(crownLeft + crownW, brimY);
   ctx.closePath();
   ctx.fill();
 
-  // Brim sticks forward (cat faces right) over the forehead
+  // Brim over the forehead
   ctx.fillStyle = "#141414";
   ctx.beginPath();
   ctx.ellipse(
-    headCenterX + crownW * 0.18,
-    crownTop + crownH * 0.88,
-    crownW * 0.42,
-    4.5,
-    0.12,
+    headCenterX + crownW * 0.12,
+    brimY + 1,
+    crownW * 0.38,
+    3.5,
+    0.1,
     0,
     Math.PI * 2,
   );
   ctx.fill();
 
-  // Strap lines hugging the sides of the head so it looks attached
+  // Side straps pressed against the head
   ctx.strokeStyle = "#2a2a2a";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(crownLeft + 3, crownTop + crownH * 0.55);
+  ctx.moveTo(crownLeft + 2, brimY - crownH * 0.35);
   ctx.quadraticCurveTo(
-    crownLeft - 2,
-    crownTop + crownH * 0.95,
-    crownLeft + 6,
-    crownTop + crownH + 2,
+    crownLeft - 1,
+    brimY - crownH * 0.05,
+    crownLeft + 4,
+    brimY + 1,
   );
   ctx.stroke();
   ctx.beginPath();
-  ctx.moveTo(crownLeft + crownW - 3, crownTop + crownH * 0.55);
+  ctx.moveTo(crownLeft + crownW - 2, brimY - crownH * 0.35);
   ctx.quadraticCurveTo(
-    crownLeft + crownW + 2,
-    crownTop + crownH * 0.95,
-    crownLeft + crownW - 6,
-    crownTop + crownH + 2,
+    crownLeft + crownW + 1,
+    brimY - crownH * 0.05,
+    crownLeft + crownW - 4,
+    brimY + 1,
   );
   ctx.stroke();
 
-  // East Turkistan flag patch on the front of the cap
-  const flagW = crownW * 0.72;
-  const flagH = crownH * 0.62;
-  const flagX = headCenterX - flagW * 0.42;
-  const flagY = crownTop + crownH * 0.18;
+  // East Turkistan flag patch on the cap front
+  const flagW = crownW * 0.7;
+  const flagH = crownH * 0.58;
+  const flagX = headCenterX - flagW * 0.48;
+  const flagY = crownTop + crownH * 0.22;
   drawEastTurkistanFlag(ctx, flagX, flagY, flagW, flagH);
 
   ctx.restore();
