@@ -25,7 +25,7 @@ import {
   formatScore,
   type Obstacle,
 } from "@/lib/catGame";
-import { playDogBark, unlockAudio } from "@/lib/barkSound";
+import { loadBarkSounds, playDogBark, unlockAudio } from "@/lib/barkSound";
 import { loadGameSprites, type GameSprites } from "@/lib/sprites";
 
 type GameStatus = "ready" | "playing" | "gameover";
@@ -167,6 +167,10 @@ export function CatGame() {
       .catch((error: unknown) => {
         console.error(error);
       });
+
+    void loadBarkSounds().catch((error: unknown) => {
+      console.error(error);
+    });
 
     function endGame() {
       statusRef.current = "gameover";
