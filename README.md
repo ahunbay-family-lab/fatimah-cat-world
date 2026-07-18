@@ -70,7 +70,7 @@ components/CatGame.tsx    # Game loop, input, scoring
 lib/catGame.ts            # Sizes, speed, collision helpers
 lib/catDraw.ts            # Canvas drawing helpers (cat + dogs)
 lib/sprites.ts            # Loads high-res animal images
-public/sprites/           # Realistic cat and dog PNG sprites
+public/sprites/           # Realistic cat (run cycle) and dog PNG sprites
 lib/constants.ts          # Site name and description
 styles/globals.css        # Global styles
 ```

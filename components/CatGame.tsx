@@ -234,12 +234,14 @@ export function CatGame() {
         drawDog(context, sprites, obstacle, frameRef.current);
       }
 
+      const onGround = catYRef.current >= GROUND_Y - CAT_HEIGHT - 0.5;
       drawCat(
         context,
         sprites,
         catYRef.current,
         frameRef.current,
         statusRef.current === "playing",
+        onGround,
       );
       drawHud(
         context,

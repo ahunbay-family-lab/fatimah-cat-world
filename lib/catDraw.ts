@@ -65,19 +65,34 @@ function drawImageCover(
   ctx.drawImage(image, drawX, drawY, drawW, drawH);
 }
 
-/** High-res tabby cat facing right (running direction). */
+/** High-res tabby cat facing right, with a running leg cycle. */
 export function drawCat(
   ctx: CanvasRenderingContext2D,
   sprites: GameSprites | null,
   y: number,
   frame: number,
   isPlaying: boolean,
+  isOnGround: boolean,
 ) {
   const x = CAT_X;
-  const bob = isPlaying ? Math.sin(frame / 5) * 1.5 : 0;
+  const bob = isPlaying && isOnGround ? Math.sin(frame / 4) * 1.2 : 0;
 
-  if (sprites?.cat) {
-    drawImageCover(ctx, sprites.cat, x, y + bob, CAT_WIDTH, CAT_HEIGHT);
+  if (sprites) {
+    let image = sprites.cat;
+
+    if (isPlaying && isOnGround && sprites.catRuns.length > 0) {
+      // Cycle leg frames while running on the ground
+      const runIndex = Math.floor(frame / 5) % sprites.catRuns.length;
+      image = sprites.catRuns[runIndex] ?? sprites.cat;
+    } else if (isPlaying && !isOnGround) {
+      // Stretched leap pose in the air
+      image = sprites.catRuns[0] ?? sprites.cat;
+    } else if (sprites.catRuns[1]) {
+      // Idle / ready pose with legs gathered
+      image = sprites.catRuns[1];
+    }
+
+    drawImageCover(ctx, image, x, y + bob, CAT_WIDTH, CAT_HEIGHT);
     return;
   }
 
