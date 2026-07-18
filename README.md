@@ -1,8 +1,8 @@
-# T-Rex Runner
+# Cat Runner
 
-A **dinosaur jump game** inspired by the Chrome offline T-Rex runner, built in the Ahunbay Family Lab.
+A **cat jump game** built in the Ahunbay Family Lab.
 
-Press Space (or tap) to jump over cacti. The longer you survive, the faster it gets!
+Help a striped tabby cat leap over barking brown dogs. The longer you survive, the faster it gets!
 
 ---
 
@@ -66,9 +66,9 @@ Your game will be live in about a minute.
 
 ```
 app/page.tsx              # Home page with the game
-components/TrexGame.tsx   # Game loop, input, scoring
-lib/trexGame.ts           # Sizes, speed, collision helpers
-lib/trexDraw.ts           # Canvas drawing helpers
+components/CatGame.tsx    # Game loop, input, scoring
+lib/catGame.ts            # Sizes, speed, collision helpers
+lib/catDraw.ts            # Canvas drawing helpers (cat + dogs)
 lib/constants.ts          # Site name and description
 styles/globals.css        # Global styles
 ```

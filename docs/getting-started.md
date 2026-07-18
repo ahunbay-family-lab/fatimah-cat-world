@@ -1,12 +1,12 @@
 # Getting Started
 
-Welcome to **T-Rex Runner**! This guide walks you through the first steps.
+Welcome to **Cat Runner**! This guide walks you through the first steps.
 
 ## What you have
 
 - A **Next.js** web app (React + TypeScript)
 - **Tailwind CSS** for styling
-- A canvas T-Rex game: jump, dodge cacti, beat your high score
+- A canvas cat game: jump, dodge barking dogs, beat your high score
 - Automatic checks when you push code to GitHub
 
 ## First commands
@@ -22,9 +22,9 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## What to try first
 
-1. Open `lib/trexGame.ts` and change `JUMP_VELOCITY` to jump higher (try `-14`).
-2. Open `lib/trexGame.ts` and change `BASE_SPEED` to make the game faster or slower.
-3. Open `lib/trexDraw.ts` and change the dino color (`#3d5a40`) to your favorite color.
+1. Open `lib/catGame.ts` and change `JUMP_VELOCITY` to jump higher (try `-14`).
+2. Open `lib/catGame.ts` and change `BASE_SPEED` to make the game faster or slower.
+3. Open `lib/catDraw.ts` and change the cat fur color (`#e08a3c`) to your favorite color.
 4. Save the file and watch the page update automatically.
 
 ## When you are stuck
@@ -35,7 +35,7 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Next steps
 
-- Add flying pterodactyls as a second obstacle type
+- Add a flying bird as a second obstacle type
 - Add a duck / crouch move
 - Change the sky colors for night mode
 

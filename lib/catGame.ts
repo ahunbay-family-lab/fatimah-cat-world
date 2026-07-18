@@ -1,17 +1,17 @@
-/** Shared sizes and helpers for the T-Rex runner game. */
+/** Shared sizes and helpers for the cat runner game. */
 
 export const GAME_WIDTH = 800;
 export const GAME_HEIGHT = 240;
 export const GROUND_Y = 200;
 
-export const DINO_WIDTH = 44;
-export const DINO_HEIGHT = 48;
-export const DINO_X = 60;
+export const CAT_WIDTH = 46;
+export const CAT_HEIGHT = 48;
+export const CAT_X = 60;
 export const JUMP_VELOCITY = -11.5;
 export const GRAVITY = 0.55;
 
-export const CACTUS_WIDTH = 22;
-export const CACTUS_HEIGHT = 44;
+export const DOG_WIDTH = 40;
+export const DOG_HEIGHT = 42;
 export const BASE_SPEED = 6;
 export const MAX_SPEED = 14;
 export const SPEED_GROWTH = 0.0008;
@@ -23,11 +23,11 @@ export type Obstacle = {
 };
 
 export function createObstacle(x: number): Obstacle {
-  const tall = Math.random() > 0.55;
+  const big = Math.random() > 0.55;
   return {
     x,
-    width: tall ? CACTUS_WIDTH + 6 : CACTUS_WIDTH,
-    height: tall ? CACTUS_HEIGHT + 10 : CACTUS_HEIGHT,
+    width: big ? DOG_WIDTH + 8 : DOG_WIDTH,
+    height: big ? DOG_HEIGHT + 8 : DOG_HEIGHT,
   };
 }
 

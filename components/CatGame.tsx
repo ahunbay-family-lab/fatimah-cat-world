@@ -2,17 +2,17 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
-  drawCactus,
-  drawDino,
+  drawCat,
+  drawDog,
   drawGround,
   drawHud,
   drawSky,
-} from "@/lib/trexDraw";
+} from "@/lib/catDraw";
 import {
   BASE_SPEED,
-  DINO_HEIGHT,
-  DINO_WIDTH,
-  DINO_X,
+  CAT_HEIGHT,
+  CAT_WIDTH,
+  CAT_X,
   GAME_HEIGHT,
   GAME_WIDTH,
   GRAVITY,
@@ -24,11 +24,11 @@ import {
   createObstacle,
   formatScore,
   type Obstacle,
-} from "@/lib/trexGame";
+} from "@/lib/catGame";
 
 type GameStatus = "ready" | "playing" | "gameover";
 
-const HIGH_SCORE_KEY = "trex-high-score";
+const HIGH_SCORE_KEY = "cat-runner-high-score";
 
 const highScoreListeners = new Set<() => void>();
 
@@ -51,7 +51,7 @@ function writeHighScore(value: number) {
   }
 }
 
-export function TrexGame() {
+export function CatGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<GameStatus>("ready");
   const [score, setScore] = useState(0);
@@ -64,7 +64,7 @@ export function TrexGame() {
   const statusRef = useRef<GameStatus>("ready");
   const scoreRef = useRef(0);
   const highScoreRef = useRef(0);
-  const dinoYRef = useRef(GROUND_Y - DINO_HEIGHT);
+  const catYRef = useRef(GROUND_Y - CAT_HEIGHT);
   const velocityRef = useRef(0);
   const obstaclesRef = useRef<Obstacle[]>([]);
   const speedRef = useRef(BASE_SPEED);
@@ -81,7 +81,7 @@ export function TrexGame() {
   }, [status]);
 
   function resetRun() {
-    dinoYRef.current = GROUND_Y - DINO_HEIGHT;
+    catYRef.current = GROUND_Y - CAT_HEIGHT;
     velocityRef.current = 0;
     obstaclesRef.current = [];
     speedRef.current = BASE_SPEED;
@@ -104,7 +104,7 @@ export function TrexGame() {
       return;
     }
 
-    const onGround = dinoYRef.current >= GROUND_Y - DINO_HEIGHT - 0.5;
+    const onGround = catYRef.current >= GROUND_Y - CAT_HEIGHT - 0.5;
     if (onGround) {
       velocityRef.current = JUMP_VELOCITY;
     }
@@ -158,9 +158,9 @@ export function TrexGame() {
       groundOffsetRef.current += speedRef.current;
 
       velocityRef.current += GRAVITY;
-      dinoYRef.current += velocityRef.current;
-      if (dinoYRef.current >= GROUND_Y - DINO_HEIGHT) {
-        dinoYRef.current = GROUND_Y - DINO_HEIGHT;
+      catYRef.current += velocityRef.current;
+      if (catYRef.current >= GROUND_Y - CAT_HEIGHT) {
+        catYRef.current = GROUND_Y - CAT_HEIGHT;
         velocityRef.current = 0;
       }
 
@@ -176,10 +176,10 @@ export function TrexGame() {
 
       for (const obstacle of obstaclesRef.current) {
         const hit = boxesOverlap(
-          DINO_X,
-          dinoYRef.current,
-          DINO_WIDTH,
-          DINO_HEIGHT,
+          CAT_X,
+          catYRef.current,
+          CAT_WIDTH,
+          CAT_HEIGHT,
           obstacle.x,
           GROUND_Y - obstacle.height,
           obstacle.width,
@@ -202,12 +202,12 @@ export function TrexGame() {
       drawGround(context, groundOffsetRef.current);
 
       for (const obstacle of obstaclesRef.current) {
-        drawCactus(context, obstacle);
+        drawDog(context, obstacle, frameRef.current);
       }
 
-      drawDino(
+      drawCat(
         context,
-        dinoYRef.current,
+        catYRef.current,
         frameRef.current,
         statusRef.current === "playing",
       );
@@ -234,10 +234,10 @@ export function TrexGame() {
     <section className="flex w-full max-w-4xl flex-col items-center gap-5">
       <header className="text-center">
         <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight text-[#1f3d2a] sm:text-5xl">
-          T-Rex Runner
+          Cat Runner
         </h1>
         <p className="mt-2 text-base text-[#3f5c48] sm:text-lg">
-          Jump the cacti. Survive as long as you can.
+          Jump over the barking dogs. Survive as long as you can.
         </p>
       </header>
 
@@ -248,7 +248,7 @@ export function TrexGame() {
           height={GAME_HEIGHT}
           className="h-auto w-full touch-none"
           role="img"
-          aria-label="T-Rex runner game canvas"
+          aria-label="Cat runner game canvas"
           onPointerDown={jump}
         />
       </div>
