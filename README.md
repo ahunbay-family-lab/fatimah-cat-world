@@ -73,7 +73,7 @@ lib/sprites.ts            # Loads high-res animal images
 lib/barkSound.ts          # Dog bark sound playback
 lib/flagHat.ts            # East Turkistan flag hat drawn on the cat
 public/sprites/           # Realistic cat (run cycle) and dog PNG sprites
-public/sounds/            # Dog bark WAV files
+public/sounds/            # Real recorded dog bark WAV files
 lib/constants.ts          # Site name and description
 styles/globals.css        # Global styles
 ```

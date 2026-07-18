@@ -1,4 +1,4 @@
-/** Dog bark sounds loaded from generated WAV files. */
+/** Dog bark sounds — real recorded woof audio clips. */
 
 let audioContext: AudioContext | null = null;
 let barkBuffers: AudioBuffer[] = [];
@@ -26,7 +26,7 @@ async function decodeBark(url: string, ctx: AudioContext): Promise<AudioBuffer> 
   return ctx.decodeAudioData(arrayBuffer);
 }
 
-/** Preload bark WAV files. Safe to call multiple times. */
+/** Preload real bark WAV files. Safe to call multiple times. */
 export function loadBarkSounds(): Promise<void> {
   if (loadPromise) return loadPromise;
 
@@ -34,7 +34,12 @@ export function loadBarkSounds(): Promise<void> {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    const urls = ["/sounds/bark1.wav", "/sounds/bark2.wav", "/sounds/bark3.wav"];
+    const urls = [
+      "/sounds/woof-woof.wav",
+      "/sounds/bark1.wav",
+      "/sounds/bark2.wav",
+      "/sounds/bark3.wav",
+    ];
     barkBuffers = await Promise.all(urls.map((url) => decodeBark(url, ctx)));
   })();
 
@@ -51,7 +56,7 @@ export function unlockAudio() {
   void loadBarkSounds();
 }
 
-/** Play a realistic dog bark if enough time has passed since the last one. */
+/** Play a realistic dog bark / woof-woof. */
 export function playDogBark(force = false) {
   const ctx = getAudioContext();
   if (!ctx) return;
@@ -67,18 +72,23 @@ export function playDogBark(force = false) {
   }
 
   const now = performance.now();
-  if (!force && now - lastBarkAt < 380) return;
+  if (!force && now - lastBarkAt < 450) return;
   lastBarkAt = now;
 
-  const buffer = barkBuffers[Math.floor(Math.random() * barkBuffers.length)];
+  // Prefer the double-woof clip about half the time
+  const useDoubleWoof = Math.random() < 0.5 && barkBuffers[0];
+  const buffer = useDoubleWoof
+    ? barkBuffers[0]
+    : barkBuffers[1 + Math.floor(Math.random() * (barkBuffers.length - 1))];
+
   const source = ctx.createBufferSource();
   source.buffer = buffer;
 
   const gain = ctx.createGain();
-  gain.gain.value = 0.75 + Math.random() * 0.15;
+  gain.gain.value = 0.85;
 
-  // Slight pitch variation per bark
-  source.playbackRate.value = 0.92 + Math.random() * 0.18;
+  // Tiny pitch shift for variety without sounding beepy
+  source.playbackRate.value = 0.96 + Math.random() * 0.08;
 
   source.connect(gain);
   gain.connect(ctx.destination);

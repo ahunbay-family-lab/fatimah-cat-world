@@ -1,6 +1,6 @@
 /**
- * Draws a hat with the East Turkistan flag (Kökbayraq):
- * light blue field, white crescent, white star.
+ * Draws a baseball cap on the cat with the East Turkistan flag (Kökbayraq).
+ * The cap sits on the cat’s head — not floating above it.
  */
 
 const FLAG_BLUE = "#0099FF";
@@ -26,7 +26,6 @@ function drawStar(
   ctx.fill();
 }
 
-/** Draw the East Turkistan flag into a rectangle. */
 export function drawEastTurkistanFlag(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -37,10 +36,10 @@ export function drawEastTurkistanFlag(
   ctx.save();
 
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(x - 2, y - 2, width + 4, height + 4);
+  ctx.fillRect(x - 1.5, y - 1.5, width + 3, height + 3);
   ctx.strokeStyle = "#003366";
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(x - 2, y - 2, width + 4, height + 4);
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x - 1.5, y - 1.5, width + 3, height + 3);
 
   ctx.fillStyle = FLAG_BLUE;
   ctx.fillRect(x, y, width, height);
@@ -67,7 +66,7 @@ export function drawEastTurkistanFlag(
   ctx.restore();
 }
 
-/** Hat sized to sit on the cat’s head with a visible flag badge. */
+/** Baseball cap with East Turkistan flag, anchored on the cat’s head. */
 export function drawFlagHat(
   ctx: CanvasRenderingContext2D,
   catX: number,
@@ -75,60 +74,72 @@ export function drawFlagHat(
   catWidth: number,
   catHeight: number,
 ) {
-  const hatCenterX = catX + catWidth * 0.68;
-  const hatTop = catY - catHeight * 0.22;
-  const brimWidth = catWidth * 0.52;
-  const crownWidth = catWidth * 0.46;
-  const crownHeight = catHeight * 0.26;
+  // Head area: cat faces right, so the skull is upper-right of the sprite box
+  const headCenterX = catX + catWidth * 0.7;
+  const headTopY = catY + catHeight * 0.04;
+  const crownW = catWidth * 0.42;
+  const crownH = catHeight * 0.2;
+  const crownLeft = headCenterX - crownW * 0.45;
+  const crownTop = headTopY;
 
   ctx.save();
 
-  ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+  // Cap crown (sits on top of head)
+  ctx.fillStyle = "#1c1c1c";
+  ctx.beginPath();
+  ctx.moveTo(crownLeft, crownTop + crownH);
+  ctx.lineTo(crownLeft, crownTop + crownH * 0.25);
+  ctx.quadraticCurveTo(
+    headCenterX,
+    crownTop - crownH * 0.15,
+    crownLeft + crownW,
+    crownTop + crownH * 0.25,
+  );
+  ctx.lineTo(crownLeft + crownW, crownTop + crownH);
+  ctx.closePath();
+  ctx.fill();
+
+  // Brim sticks forward (cat faces right) over the forehead
+  ctx.fillStyle = "#141414";
   ctx.beginPath();
   ctx.ellipse(
-    hatCenterX,
-    hatTop + crownHeight + 4,
-    brimWidth * 0.48,
-    4,
-    0,
+    headCenterX + crownW * 0.18,
+    crownTop + crownH * 0.88,
+    crownW * 0.42,
+    4.5,
+    0.12,
     0,
     Math.PI * 2,
   );
   ctx.fill();
 
-  ctx.fillStyle = "#1a1a1a";
-  ctx.fillRect(hatCenterX - crownWidth / 2, hatTop, crownWidth, crownHeight);
-
+  // Strap lines hugging the sides of the head so it looks attached
+  ctx.strokeStyle = "#2a2a2a";
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.ellipse(
-    hatCenterX,
-    hatTop + 3,
-    crownWidth / 2,
-    5,
-    0,
-    Math.PI,
-    0,
-    true,
+  ctx.moveTo(crownLeft + 3, crownTop + crownH * 0.55);
+  ctx.quadraticCurveTo(
+    crownLeft - 2,
+    crownTop + crownH * 0.95,
+    crownLeft + 6,
+    crownTop + crownH + 2,
   );
-  ctx.fill();
-
-  ctx.fillStyle = "#111111";
+  ctx.stroke();
   ctx.beginPath();
-  ctx.ellipse(
-    hatCenterX,
-    hatTop + crownHeight,
-    brimWidth / 2,
-    5,
-    0,
-    0,
-    Math.PI * 2,
+  ctx.moveTo(crownLeft + crownW - 3, crownTop + crownH * 0.55);
+  ctx.quadraticCurveTo(
+    crownLeft + crownW + 2,
+    crownTop + crownH * 0.95,
+    crownLeft + crownW - 6,
+    crownTop + crownH + 2,
   );
-  ctx.fill();
+  ctx.stroke();
 
-  const flagW = crownWidth * 0.88;
-  const flagH = crownHeight * 0.78;
-  const flagX = hatCenterX - flagW / 2;
-  const flagY = hatTop + crownHeight * 0.12;
+  // East Turkistan flag patch on the front of the cap
+  const flagW = crownW * 0.72;
+  const flagH = crownH * 0.62;
+  const flagX = headCenterX - flagW * 0.42;
+  const flagY = crownTop + crownH * 0.18;
   drawEastTurkistanFlag(ctx, flagX, flagY, flagW, flagH);
 
   ctx.restore();
