@@ -25,7 +25,7 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 1. Open `lib/catGame.ts` and change `JUMP_VELOCITY` to jump higher (try `-14`).
 2. Open `lib/catGame.ts` and change `BASE_SPEED` to make the game faster or slower.
 3. Open `lib/flagHat.ts` to see how the East Turkistan flag hat is drawn on the cat.
-4. Open `lib/barkSound.ts` to see how the dog bark sound is made.
+4. Open `public/sounds/` — those are real recorded dog barks used in the game.
 5. Save the file and watch the page update automatically.
 
 ## When you are stuck
