@@ -45,7 +45,7 @@ export function loadMeowSounds(): Promise<void> {
   return loadPromise;
 }
 
-/** Play a realistic cat meow. */
+/** Play a realistic cat meow with no extra processing. */
 export function playMeow() {
   const ctx = getAudioContext();
   if (!ctx) return;
@@ -70,21 +70,7 @@ export function playMeow() {
   const gain = ctx.createGain();
   gain.gain.value = 1;
 
-  const warmth = ctx.createBiquadFilter();
-  warmth.type = "peaking";
-  warmth.frequency.value = 720;
-  warmth.Q.value = 0.9;
-  warmth.gain.value = 2.5;
-
-  const lowpass = ctx.createBiquadFilter();
-  lowpass.type = "lowpass";
-  lowpass.frequency.value = 9000;
-
-  source.playbackRate.value = 0.99 + Math.random() * 0.03;
-
-  source.connect(warmth);
-  warmth.connect(lowpass);
-  lowpass.connect(gain);
+  source.connect(gain);
   gain.connect(ctx.destination);
   source.start();
 }

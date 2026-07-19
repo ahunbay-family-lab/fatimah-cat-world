@@ -291,7 +291,7 @@ function drawSongBubble(
   ctx.fillStyle = "#1f3d2a";
   ctx.font = "bold 15px ui-monospace, SFMono-Regular, Menlo, monospace";
   ctx.textAlign = "center";
-  ctx.fillText(`🤖 ${text}`, x, y - 8);
+    ctx.fillText(`🎵 ${text}`, x, y - 8);
   ctx.restore();
 }
 
@@ -371,7 +371,7 @@ export function drawHud(
     ctx.textAlign = "center";
     ctx.font = "bold 22px ui-monospace, SFMono-Regular, Menlo, monospace";
     ctx.fillStyle = "#1f3d2a";
-    ctx.fillText("Robot dance! 🤖", GAME_WIDTH / 2, GAME_HEIGHT / 2);
+    ctx.fillText("Celebration time! 🎉", GAME_WIDTH / 2, GAME_HEIGHT / 2);
   }
 
   if (status === "gameover") {
