@@ -9,6 +9,7 @@ import {
   type Obstacle,
 } from "@/lib/catGame";
 import { drawFlagHat } from "@/lib/flagHat";
+import { drawGoldHud } from "@/lib/mouseDraw";
 import type { GameSprites } from "@/lib/sprites";
 
 export function drawSky(ctx: CanvasRenderingContext2D) {
@@ -178,7 +179,10 @@ export function drawHud(
   status: HudStatus,
   score: number,
   highScore: number,
+  gold: number,
 ) {
+  drawGoldHud(ctx, gold);
+
   ctx.fillStyle = "#2c2416";
   ctx.font = "bold 16px ui-monospace, SFMono-Regular, Menlo, monospace";
   ctx.textAlign = "right";
@@ -194,7 +198,7 @@ export function drawHud(
     ctx.fillText("Press Space to start", GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10);
     ctx.font = "14px ui-monospace, SFMono-Regular, Menlo, monospace";
     ctx.fillText(
-      "Jump over the barking dogs!",
+      "Jump over dogs, collect mice for gold!",
       GAME_WIDTH / 2,
       GAME_HEIGHT / 2 + 16,
     );

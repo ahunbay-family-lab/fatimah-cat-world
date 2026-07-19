@@ -15,17 +15,24 @@ import {
   CAT_X,
   GAME_HEIGHT,
   GAME_WIDTH,
+  GOLD_PER_MOUSE,
   GRAVITY,
   GROUND_Y,
   JUMP_VELOCITY,
   MAX_SPEED,
+  MOUSE_DOG_GAP,
   SPEED_GROWTH,
   boxesOverlap,
+  createMouseRow,
   createObstacle,
+  formatGold,
   formatScore,
+  mouseRowWidth,
+  type Mouse,
   type Obstacle,
 } from "@/lib/catGame";
 import { loadBarkSounds, playDogBark, unlockAudio } from "@/lib/barkSound";
+import { drawMouse } from "@/lib/mouseDraw";
 import { loadGameSprites, type GameSprites } from "@/lib/sprites";
 
 type GameStatus = "ready" | "playing" | "gameover";
@@ -71,6 +78,7 @@ export function CatGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<GameStatus>("ready");
   const [score, setScore] = useState(0);
+  const [gold, setGold] = useState(0);
   const highScore = useSyncExternalStore(
     subscribeHighScore,
     readHighScore,
@@ -79,14 +87,18 @@ export function CatGame() {
 
   const statusRef = useRef<GameStatus>("ready");
   const scoreRef = useRef(0);
+  const goldRef = useRef(0);
   const highScoreRef = useRef(0);
   const catYRef = useRef(GROUND_Y - CAT_HEIGHT);
   const velocityRef = useRef(0);
   const obstaclesRef = useRef<Obstacle[]>([]);
+  const miceRef = useRef<Mouse[]>([]);
   const speedRef = useRef(BASE_SPEED);
   const frameRef = useRef(0);
   const groundOffsetRef = useRef(0);
   const spawnTimerRef = useRef(0);
+  const touchFramesRef = useRef(0);
+  const miceComboRef = useRef(0);
   const spritesRef = useRef<GameSprites | null>(null);
 
   useEffect(() => {
@@ -101,12 +113,17 @@ export function CatGame() {
     catYRef.current = GROUND_Y - CAT_HEIGHT;
     velocityRef.current = 0;
     obstaclesRef.current = [];
+    miceRef.current = [];
     speedRef.current = BASE_SPEED;
     frameRef.current = 0;
     groundOffsetRef.current = 0;
     spawnTimerRef.current = 90;
+    touchFramesRef.current = 0;
+    miceComboRef.current = 0;
     scoreRef.current = 0;
+    goldRef.current = 0;
     setScore(0);
+    setGold(0);
   }
 
   function startGame() {
@@ -142,7 +159,6 @@ export function CatGame() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-    // Intentionally bind once; jump/start read latest values from refs
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -182,6 +198,51 @@ export function CatGame() {
       }
     }
 
+    function handleMice() {
+      let touchingMouse = false;
+      let goldChanged = false;
+
+      for (const mouse of miceRef.current) {
+        const mouseY = GROUND_Y - mouse.height;
+        const hit = boxesOverlap(
+          CAT_X,
+          catYRef.current,
+          CAT_WIDTH,
+          CAT_HEIGHT,
+          mouse.x,
+          mouseY,
+          mouse.width,
+          mouse.height,
+          4,
+        );
+
+        if (hit) {
+          touchingMouse = true;
+          if (!mouse.collected) {
+            mouse.collected = true;
+            goldRef.current += GOLD_PER_MOUSE;
+            miceComboRef.current += 1;
+            goldChanged = true;
+          }
+        }
+      }
+
+      if (touchingMouse) {
+        touchFramesRef.current += 1;
+        if (touchFramesRef.current % 10 === 0) {
+          const bonus = 1 + Math.floor(miceComboRef.current / 2);
+          goldRef.current += bonus;
+          goldChanged = true;
+        }
+      } else {
+        touchFramesRef.current = 0;
+      }
+
+      if (goldChanged && frameRef.current % 2 === 0) {
+        setGold(Math.floor(goldRef.current));
+      }
+    }
+
     function update() {
       if (statusRef.current !== "playing") return;
 
@@ -201,13 +262,22 @@ export function CatGame() {
 
       spawnTimerRef.current -= 1;
       if (spawnTimerRef.current <= 0) {
-        obstaclesRef.current.push(createObstacle(GAME_WIDTH + 20));
+        const dogX = GAME_WIDTH + 20;
+        const miceStartX = dogX - mouseRowWidth() - MOUSE_DOG_GAP;
+        miceRef.current.push(...createMouseRow(miceStartX));
+        obstaclesRef.current.push(createObstacle(dogX));
         spawnTimerRef.current = 70 + Math.floor(Math.random() * 70);
       }
+
+      miceRef.current = miceRef.current
+        .map((mouse) => ({ ...mouse, x: mouse.x - speedRef.current }))
+        .filter((mouse) => mouse.x + mouse.width > -10);
 
       obstaclesRef.current = obstaclesRef.current
         .map((obstacle) => ({ ...obstacle, x: obstacle.x - speedRef.current }))
         .filter((obstacle) => obstacle.x + obstacle.width > -10);
+
+      handleMice();
 
       for (const obstacle of obstaclesRef.current) {
         const hit = boxesOverlap(
@@ -229,12 +299,13 @@ export function CatGame() {
       scoreRef.current += 0.15;
       if (frameRef.current % 4 === 0) {
         setScore(Math.floor(scoreRef.current));
+        setGold(Math.floor(goldRef.current));
       }
 
-      // Dogs bark when their mouth-open frame hits and they are on screen
       const dogIsBarking = Math.floor(frameRef.current / 8) % 2 === 0;
       const dogOnScreen = obstaclesRef.current.some(
-        (obstacle) => obstacle.x < GAME_WIDTH - 20 && obstacle.x + obstacle.width > 0,
+        (obstacle) =>
+          obstacle.x < GAME_WIDTH - 20 && obstacle.x + obstacle.width > 0,
       );
       if (dogIsBarking && dogOnScreen && frameRef.current % 8 === 0) {
         playDogBark();
@@ -246,6 +317,10 @@ export function CatGame() {
       drawGround(context, groundOffsetRef.current);
 
       const sprites = spritesRef.current;
+      for (const mouse of miceRef.current) {
+        drawMouse(context, mouse, frameRef.current);
+      }
+
       for (const obstacle of obstaclesRef.current) {
         drawDog(context, sprites, obstacle, frameRef.current);
       }
@@ -264,6 +339,7 @@ export function CatGame() {
         statusRef.current,
         scoreRef.current,
         highScoreRef.current,
+        goldRef.current,
       );
     }
 
@@ -288,7 +364,7 @@ export function CatGame() {
           Cat Runner
         </h1>
         <p className="mt-2 text-base text-[#3f5c48] sm:text-lg">
-          Jump over the barking dogs. Listen for their woofs!
+          Jump over dogs, run through mice rows to earn gold!
         </p>
       </header>
 
@@ -318,7 +394,8 @@ export function CatGame() {
               : "Start"}
         </button>
         <p className="text-sm text-[#3f5c48]">
-          Score {formatScore(score)} · Best {formatScore(highScore)}
+          Gold {formatGold(gold)} · Score {formatScore(score)} · Best{" "}
+          {formatScore(highScore)}
         </p>
       </div>
 
