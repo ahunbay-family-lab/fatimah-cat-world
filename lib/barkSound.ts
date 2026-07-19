@@ -35,10 +35,10 @@ export function loadBarkSounds(): Promise<void> {
     if (!ctx) return;
 
     const urls = [
-      "/sounds/woof-woof.wav",
       "/sounds/bark1.wav",
       "/sounds/bark2.wav",
       "/sounds/bark3.wav",
+      "/sounds/woof-woof.wav",
     ];
     barkBuffers = await Promise.all(urls.map((url) => decodeBark(url, ctx)));
   })();
@@ -75,11 +75,12 @@ export function playDogBark(force = false) {
   if (!force && now - lastBarkAt < 450) return;
   lastBarkAt = now;
 
-  // Prefer the double-woof clip about half the time
-  const useDoubleWoof = Math.random() < 0.5 && barkBuffers[0];
+  const singleBarks = barkBuffers.slice(0, 3);
+  const woofWoof = barkBuffers[3];
+  const useDoubleWoof = Math.random() < 0.5 && woofWoof;
   const buffer = useDoubleWoof
-    ? barkBuffers[0]
-    : barkBuffers[1 + Math.floor(Math.random() * (barkBuffers.length - 1))];
+    ? woofWoof
+    : singleBarks[Math.floor(Math.random() * singleBarks.length)] ?? barkBuffers[0];
 
   const source = ctx.createBufferSource();
   source.buffer = buffer;
