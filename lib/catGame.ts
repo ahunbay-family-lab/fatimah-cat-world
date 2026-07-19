@@ -25,7 +25,7 @@ export const MOUSE_DOG_GAP = 70;
 
 export const CLOUD_HEIGHT = 26;
 export const CELEBRATION_SCORE_INTERVAL = 200;
-export const CELEBRATION_FRAMES = 130;
+export const CELEBRATION_FRAMES = 210;
 
 export type Obstacle = {
   x: number;
