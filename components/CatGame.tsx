@@ -37,7 +37,6 @@ import {
 } from "@/lib/catGame";
 import { loadBarkSounds, playDogBark, unlockAudio } from "@/lib/barkSound";
 import { drawCloud } from "@/lib/cloudDraw";
-import { loadDanceSong, playDanceSong, stopDanceSong } from "@/lib/danceSong";
 import { loadMeowSounds, playMeow } from "@/lib/meowSound";
 import { drawMouse } from "@/lib/mouseDraw";
 import { loadGameSprites, type GameSprites } from "@/lib/sprites";
@@ -121,7 +120,6 @@ export function CatGame() {
   }, [status]);
 
   function resetRun() {
-    stopDanceSong();
     catYRef.current = GROUND_Y - CAT_HEIGHT;
     velocityRef.current = 0;
     obstaclesRef.current = [];
@@ -210,10 +208,6 @@ export function CatGame() {
       console.error(error);
     });
 
-    void loadDanceSong().catch((error: unknown) => {
-      console.error(error);
-    });
-
     function endGame() {
       statusRef.current = "gameover";
       setStatus("gameover");
@@ -229,7 +223,6 @@ export function CatGame() {
       statusRef.current = "celebrating";
       setStatus("celebrating");
       playMeow();
-      playDanceSong();
     }
 
     function allMice(): Mouse[] {
