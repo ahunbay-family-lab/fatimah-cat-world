@@ -1,6 +1,6 @@
-import { GROUND_Y, type Mouse } from "@/lib/catGame";
+import { type Mouse } from "@/lib/catGame";
 
-/** Draw a small mouse on the ground. */
+/** Draw a small mouse at its position. */
 export function drawMouse(
   ctx: CanvasRenderingContext2D,
   mouse: Mouse,
@@ -9,7 +9,7 @@ export function drawMouse(
   if (mouse.collected) return;
 
   const x = mouse.x;
-  const y = GROUND_Y - mouse.height;
+  const y = mouse.y;
   const wiggle = Math.sin(frame / 6 + mouse.id) * 0.8;
 
   ctx.save();

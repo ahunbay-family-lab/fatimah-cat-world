@@ -23,6 +23,10 @@ export const MOUSE_SPACING = 90;
 export const GOLD_PER_MOUSE = 2;
 export const MOUSE_DOG_GAP = 70;
 
+export const CLOUD_HEIGHT = 26;
+export const CELEBRATION_SCORE_INTERVAL = 200;
+export const CELEBRATION_FRAMES = 130;
+
 export type Obstacle = {
   x: number;
   width: number;
@@ -32,12 +36,23 @@ export type Obstacle = {
 export type Mouse = {
   id: number;
   x: number;
+  y: number;
   width: number;
   height: number;
   collected: boolean;
 };
 
+export type CloudPlatform = {
+  id: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  mice: Mouse[];
+};
+
 let nextMouseId = 0;
+let nextCloudId = 0;
 
 export function createObstacle(x: number): Obstacle {
   const big = Math.random() > 0.55;
@@ -48,13 +63,13 @@ export function createObstacle(x: number): Obstacle {
   };
 }
 
-/** A row of mice placed just before a dog obstacle. */
 export function createMouseRow(startX: number): Mouse[] {
   const mice: Mouse[] = [];
   for (let i = 0; i < MOUSE_ROW_COUNT; i++) {
     mice.push({
       id: nextMouseId++,
       x: startX + i * MOUSE_SPACING,
+      y: GROUND_Y - MOUSE_HEIGHT,
       width: MOUSE_WIDTH,
       height: MOUSE_HEIGHT,
       collected: false,
@@ -65,6 +80,54 @@ export function createMouseRow(startX: number): Mouse[] {
 
 export function mouseRowWidth(): number {
   return (MOUSE_ROW_COUNT - 1) * MOUSE_SPACING + MOUSE_WIDTH;
+}
+
+function createCloudMouse(cloudX: number, platformY: number, offset: number): Mouse {
+  return {
+    id: nextMouseId++,
+    x: cloudX + offset,
+    y: platformY - MOUSE_HEIGHT,
+    width: MOUSE_WIDTH,
+    height: MOUSE_HEIGHT,
+    collected: false,
+  };
+}
+
+/** Cloud platform with mice sitting on top. */
+export function createCloud(x: number, platformY: number): CloudPlatform {
+  const width = 95 + Math.floor(Math.random() * 35);
+  const mice = [
+    createCloudMouse(x, platformY, 18),
+    createCloudMouse(x, platformY, 48),
+    createCloudMouse(x, platformY, 78),
+  ];
+  return {
+    id: nextCloudId++,
+    x,
+    y: platformY,
+    width,
+    height: CLOUD_HEIGHT,
+    mice,
+  };
+}
+
+/** Spawn a group of clouds — some close, some far apart. */
+export function spawnCloudGroup(startX: number): CloudPlatform[] {
+  const pattern = Math.random();
+  if (pattern < 0.35) {
+    return [createCloud(startX, 168)];
+  }
+  if (pattern < 0.7) {
+    return [
+      createCloud(startX, 168),
+      createCloud(startX + 105, 128),
+      createCloud(startX + 215, 145),
+    ];
+  }
+  return [
+    createCloud(startX, 165),
+    createCloud(startX + 280, 118),
+  ];
 }
 
 export function boxesOverlap(

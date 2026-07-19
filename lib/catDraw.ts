@@ -95,41 +95,77 @@ export function drawCat(
   frame: number,
   isPlaying: boolean,
   isOnGround: boolean,
+  isCelebrating = false,
 ) {
   const x = CAT_X;
-  const bob = isPlaying && isOnGround ? Math.sin(frame / 4) * 1.2 : 0;
+  const bob =
+    isCelebrating
+      ? Math.sin(frame / 4) * 12
+      : isPlaying && isOnGround
+        ? Math.sin(frame / 4) * 1.2
+        : 0;
+  const sway = isCelebrating ? Math.sin(frame / 5) * 8 : 0;
 
   if (sprites) {
     let image = sprites.cat;
 
-    if (isPlaying && isOnGround && sprites.catRuns.length > 0) {
-      // Cycle leg frames while running on the ground
+    if (isCelebrating) {
+      const danceIndex = Math.floor(frame / 4) % sprites.catRuns.length;
+      image = sprites.catRuns[danceIndex] ?? sprites.cat;
+    } else if (isPlaying && isOnGround && sprites.catRuns.length > 0) {
       const runIndex = Math.floor(frame / 5) % sprites.catRuns.length;
       image = sprites.catRuns[runIndex] ?? sprites.cat;
     } else if (isPlaying && !isOnGround) {
-      // Stretched leap pose in the air
       image = sprites.catRuns[0] ?? sprites.cat;
     } else if (sprites.catRuns[1]) {
-      // Idle / ready pose with legs gathered
       image = sprites.catRuns[1];
     }
 
     const catYPos = y + bob;
+    ctx.save();
+    ctx.translate(sway, 0);
     drawImageCover(ctx, image, x, catYPos, CAT_WIDTH, CAT_HEIGHT);
     const spriteRect = getSpriteDrawRect(image, x, catYPos, CAT_WIDTH, CAT_HEIGHT);
     drawFlagHat(ctx, spriteRect);
+    ctx.restore();
+
+    if (isCelebrating) {
+      drawMeowBubble(ctx, x + CAT_WIDTH * 0.5, catYPos - 8);
+    }
     return;
   }
 
-  // Fallback while images load
   ctx.fillStyle = "#e08a3c";
-  ctx.fillRect(x, y, CAT_WIDTH, CAT_HEIGHT);
+  ctx.fillRect(x + sway, y, CAT_WIDTH, CAT_HEIGHT);
   drawFlagHat(ctx, {
-    drawX: x,
+    drawX: x + sway,
     drawY: y,
     drawW: CAT_WIDTH,
     drawH: CAT_HEIGHT,
   });
+}
+
+function drawMeowBubble(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  ctx.save();
+  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+  ctx.strokeStyle = "#3d5a40";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x - 28, y - 34, 76, 28, 8);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + 4, y - 6);
+  ctx.lineTo(x + 12, y);
+  ctx.lineTo(x - 2, y - 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#1f3d2a";
+  ctx.font = "bold 16px ui-monospace, SFMono-Regular, Menlo, monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("Meow!", x + 10, y - 14);
+  ctx.restore();
 }
 
 /**
@@ -172,7 +208,7 @@ export function drawDog(
   ctx.fillRect(x, y, w, h);
 }
 
-type HudStatus = "ready" | "playing" | "gameover";
+type HudStatus = "ready" | "playing" | "celebrating" | "gameover";
 
 export function drawHud(
   ctx: CanvasRenderingContext2D,
@@ -198,10 +234,17 @@ export function drawHud(
     ctx.fillText("Press Space to start", GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10);
     ctx.font = "14px ui-monospace, SFMono-Regular, Menlo, monospace";
     ctx.fillText(
-      "Jump over dogs, collect mice for gold!",
+      "Jump on clouds for mice, dodge dogs!",
       GAME_WIDTH / 2,
       GAME_HEIGHT / 2 + 16,
     );
+  }
+
+  if (status === "celebrating") {
+    ctx.textAlign = "center";
+    ctx.font = "bold 22px ui-monospace, SFMono-Regular, Menlo, monospace";
+    ctx.fillStyle = "#1f3d2a";
+    ctx.fillText("Meow! 🎉", GAME_WIDTH / 2, GAME_HEIGHT / 2);
   }
 
   if (status === "gameover") {
