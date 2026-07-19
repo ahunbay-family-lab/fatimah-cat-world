@@ -37,7 +37,7 @@ import {
 } from "@/lib/catGame";
 import { loadBarkSounds, playDogBark, unlockAudio } from "@/lib/barkSound";
 import { drawCloud } from "@/lib/cloudDraw";
-import { loadDanceSongVoice, playDanceSong, stopDanceSong } from "@/lib/danceSong";
+import { loadDanceSong, playDanceSong, stopDanceSong } from "@/lib/danceSong";
 import { loadMeowSounds, playMeow } from "@/lib/meowSound";
 import { drawMouse } from "@/lib/mouseDraw";
 import { loadGameSprites, type GameSprites } from "@/lib/sprites";
@@ -210,7 +210,7 @@ export function CatGame() {
       console.error(error);
     });
 
-    void loadDanceSongVoice().catch((error: unknown) => {
+    void loadDanceSong().catch((error: unknown) => {
       console.error(error);
     });
 

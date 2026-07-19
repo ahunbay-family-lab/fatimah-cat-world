@@ -1,9 +1,9 @@
-/** Short robot dance song for the 200-point celebration. */
+/** Celebration song with pre-recorded vocals and a cheerful melody. */
 
 type LyricCue = {
   frame: number;
   text: string;
-  pitch: number;
+  file: string;
 };
 
 type MelodyNote = {
@@ -13,43 +13,47 @@ type MelodyNote = {
 };
 
 export const DANCE_LYRICS: LyricCue[] = [
-  { frame: 0, text: "I'm a cat bot!", pitch: 1.24 },
-  { frame: 50, text: "Step left, step right!", pitch: 1.18 },
-  { frame: 100, text: "Pop and lock!", pitch: 1.2 },
-  { frame: 150, text: "Meow meow, alright!", pitch: 1.22 },
+  {
+    frame: 0,
+    text: "Jump up high, touch the sky!",
+    file: "/sounds/song/line1.wav",
+  },
+  {
+    frame: 55,
+    text: "Gold is shining, clouds go by!",
+    file: "/sounds/song/line2.wav",
+  },
+  {
+    frame: 110,
+    text: "Dodge those dogs, watch me fly!",
+    file: "/sounds/song/line3.wav",
+  },
+  {
+    frame: 165,
+    text: "Cat runner star, meow hooray!",
+    file: "/sounds/song/line4.wav",
+  },
 ];
 
-const ROBOT_MELODY: MelodyNote[] = [
-  { freq: 392, start: 0, duration: 0.14 },
-  { freq: 392, start: 0.16, duration: 0.14 },
-  { freq: 523, start: 0.32, duration: 0.14 },
-  { freq: 523, start: 0.48, duration: 0.14 },
-  { freq: 587, start: 0.64, duration: 0.14 },
-  { freq: 587, start: 0.8, duration: 0.14 },
-  { freq: 523, start: 0.96, duration: 0.18 },
-  { freq: 494, start: 1.2, duration: 0.14 },
-  { freq: 494, start: 1.36, duration: 0.14 },
-  { freq: 440, start: 1.52, duration: 0.14 },
-  { freq: 440, start: 1.68, duration: 0.14 },
-  { freq: 392, start: 1.84, duration: 0.28 },
-];
-
-const PREFERRED_VOICES = [
-  "Samantha",
-  "Karen",
-  "Victoria",
-  "Google US English",
-  "Microsoft Zira",
-  "Fiona",
-  "Tessa",
-  "Moira",
-  "Google UK English Female",
+const CELEBRATION_MELODY: MelodyNote[] = [
+  { freq: 392, start: 0.0, duration: 0.24 },
+  { freq: 440, start: 0.26, duration: 0.24 },
+  { freq: 494, start: 0.52, duration: 0.24 },
+  { freq: 523, start: 0.78, duration: 0.32 },
+  { freq: 494, start: 1.14, duration: 0.24 },
+  { freq: 440, start: 1.4, duration: 0.24 },
+  { freq: 392, start: 1.66, duration: 0.24 },
+  { freq: 440, start: 1.92, duration: 0.24 },
+  { freq: 494, start: 2.18, duration: 0.24 },
+  { freq: 587, start: 2.44, duration: 0.24 },
+  { freq: 523, start: 2.7, duration: 0.24 },
+  { freq: 440, start: 2.96, duration: 0.36 },
 ];
 
 let audioContext: AudioContext | null = null;
+let lineBuffers = new Map<string, AudioBuffer>();
+let loadPromise: Promise<void> | null = null;
 let songSession = 0;
-let singVoice: SpeechSynthesisVoice | null = null;
-let voicesReady: Promise<void> | null = null;
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -69,101 +73,91 @@ function sleep(ms: number) {
   });
 }
 
-function pickSingVoice(): SpeechSynthesisVoice | null {
-  if (typeof window === "undefined" || !window.speechSynthesis) return null;
+async function decodeAudio(url: string, ctx: AudioContext): Promise<AudioBuffer> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load ${url}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  return ctx.decodeAudioData(arrayBuffer);
+}
 
-  const voices = window.speechSynthesis.getVoices();
-  for (const preferred of PREFERRED_VOICES) {
-    const match = voices.find(
-      (voice) => voice.name.includes(preferred) && voice.lang.startsWith("en"),
+/** Preload celebration song vocals. Safe to call multiple times. */
+export function loadDanceSong(): Promise<void> {
+  if (loadPromise) return loadPromise;
+
+  loadPromise = (async () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const entries = await Promise.all(
+      DANCE_LYRICS.map(async (cue) => {
+        const buffer = await decodeAudio(cue.file, ctx);
+        return [cue.file, buffer] as const;
+      }),
     );
-    if (match) return match;
-  }
 
-  return (
-    voices.find((voice) => voice.lang.startsWith("en") && voice.localService) ??
-    voices.find((voice) => voice.lang.startsWith("en")) ??
-    null
-  );
+    lineBuffers = new Map(entries);
+  })();
+
+  return loadPromise;
 }
 
-/** Warm up speech voices so the first lyric sounds clear. */
-export function loadDanceSongVoice(): Promise<void> {
-  if (voicesReady) return voicesReady;
+/** Backwards-compatible alias. */
+export const loadDanceSongVoice = loadDanceSong;
 
-  voicesReady = new Promise((resolve) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) {
-      resolve();
-      return;
-    }
+function playLine(buffer: AudioBuffer, ctx: AudioContext) {
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
 
-    const refreshVoice = () => {
-      singVoice = pickSingVoice();
-    };
+  const gain = ctx.createGain();
+  gain.gain.value = 0.96;
 
-    refreshVoice();
-    if (window.speechSynthesis.getVoices().length > 0) {
-      resolve();
-      return;
-    }
-
-    window.speechSynthesis.onvoiceschanged = () => {
-      refreshVoice();
-      resolve();
-    };
-    window.setTimeout(() => {
-      refreshVoice();
-      resolve();
-    }, 300);
-  });
-
-  return voicesReady;
+  source.connect(gain);
+  gain.connect(ctx.destination);
+  source.start();
 }
 
-function speakSongLine(text: string, pitch: number): Promise<void> {
-  if (typeof window === "undefined" || !window.speechSynthesis) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = singVoice ?? pickSingVoice();
-    utterance.lang = utterance.voice?.lang ?? "en-US";
-    utterance.pitch = pitch;
-    utterance.rate = 0.92;
-    utterance.volume = 1;
-    utterance.onend = () => resolve();
-    utterance.onerror = () => resolve();
-    window.speechSynthesis.speak(utterance);
-  });
-}
-
-function playRobotMelody(ctx: AudioContext) {
+function playCelebrationMelody(ctx: AudioContext) {
   const start = ctx.currentTime;
 
-  for (const note of ROBOT_MELODY) {
-    const osc = ctx.createOscillator();
-    osc.type = "triangle";
+  for (const note of CELEBRATION_MELODY) {
+    const lead = ctx.createOscillator();
+    lead.type = "sine";
 
-    const gain = ctx.createGain();
+    const harmony = ctx.createOscillator();
+    harmony.type = "triangle";
+
     const noteStart = start + note.start;
     const noteEnd = noteStart + note.duration;
 
-    osc.frequency.setValueAtTime(note.freq, noteStart);
-    gain.gain.setValueAtTime(0.0001, noteStart);
-    gain.gain.linearRampToValueAtTime(0.045, noteStart + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, noteEnd);
+    lead.frequency.setValueAtTime(note.freq, noteStart);
+    harmony.frequency.setValueAtTime(note.freq * 0.75, noteStart);
+
+    const leadGain = ctx.createGain();
+    leadGain.gain.setValueAtTime(0.0001, noteStart);
+    leadGain.gain.linearRampToValueAtTime(0.07, noteStart + 0.02);
+    leadGain.gain.exponentialRampToValueAtTime(0.0001, noteEnd);
+
+    const harmonyGain = ctx.createGain();
+    harmonyGain.gain.setValueAtTime(0.0001, noteStart);
+    harmonyGain.gain.linearRampToValueAtTime(0.03, noteStart + 0.02);
+    harmonyGain.gain.exponentialRampToValueAtTime(0.0001, noteEnd);
 
     const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
-    filter.frequency.value = 2200;
+    filter.frequency.value = 2600;
 
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
+    lead.connect(filter);
+    filter.connect(leadGain);
+    harmony.connect(harmonyGain);
+    leadGain.connect(ctx.destination);
+    harmonyGain.connect(ctx.destination);
 
-    osc.start(noteStart);
-    osc.stop(noteEnd + 0.02);
+    lead.start(noteStart);
+    harmony.start(noteStart);
+    lead.stop(noteEnd + 0.02);
+    harmony.stop(noteEnd + 0.02);
   }
 }
 
@@ -178,17 +172,17 @@ export function getDanceLyric(celebrationFrame: number): string {
   return line;
 }
 
-/** Stop any in-progress dance song vocals. */
+/** Stop any in-progress dance song. */
 export function stopDanceSong() {
   songSession += 1;
-  if (typeof window !== "undefined" && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
-  }
 }
 
-async function singDanceSong(session: number) {
-  await loadDanceSongVoice();
+async function singCelebrationSong(session: number) {
+  await loadDanceSong();
   if (session !== songSession) return;
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
 
   const startedAt = performance.now();
 
@@ -199,11 +193,15 @@ async function singDanceSong(session: number) {
       await sleep(targetMs - elapsedMs);
     }
     if (session !== songSession) return;
-    await speakSongLine(cue.text, cue.pitch);
+
+    const buffer = lineBuffers.get(cue.file);
+    if (buffer) {
+      playLine(buffer, ctx);
+    }
   }
 }
 
-/** Play the short robot dance song (soft melody + clear sung lyrics). */
+/** Play the celebration song (melody + recorded vocals). */
 export function playDanceSong() {
   const session = ++songSession;
   const ctx = getAudioContext();
@@ -214,6 +212,11 @@ export function playDanceSong() {
     return;
   }
 
-  playRobotMelody(ctx);
-  void singDanceSong(session);
+  if (lineBuffers.size === 0) {
+    void loadDanceSong().then(() => playDanceSong());
+    return;
+  }
+
+  playCelebrationMelody(ctx);
+  void singCelebrationSong(session);
 }
