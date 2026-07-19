@@ -69,9 +69,9 @@ export function drawMouse(
   ctx.restore();
 }
 
-/** Gold counter in the top-left corner of the game canvas. */
+/** Mouse counter in the top-left corner of the game canvas. */
 export function drawGoldHud(ctx: CanvasRenderingContext2D, gold: number) {
-  const label = `Gold: ${Math.floor(gold)}`;
+  const label = `Mouse: ${Math.floor(gold)}`;
 
   ctx.save();
   ctx.font = "bold 18px ui-monospace, SFMono-Regular, Menlo, monospace";

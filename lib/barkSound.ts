@@ -88,7 +88,7 @@ export function playDogBark(force = false) {
   source.buffer = buffer;
 
   const gain = ctx.createGain();
-  gain.gain.value = 0.85;
+  gain.gain.value = 0.68;
 
   // Tiny pitch shift for variety without sounding beepy
   source.playbackRate.value = 0.96 + Math.random() * 0.08;

@@ -1,7 +1,7 @@
 /** Soft looping instrumental nasheed for background music. */
 
 const NASHEED_URL = "/sounds/nasheed.wav";
-const NORMAL_VOLUME = 0.24;
+const NORMAL_VOLUME = 0.34;
 const DUCKED_VOLUME = 0.08;
 const CELEBRATION_VOLUME = 0.05;
 

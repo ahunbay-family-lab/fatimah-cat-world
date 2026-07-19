@@ -569,7 +569,7 @@ export function CatGame() {
               : "Start"}
         </button>
         <p className="text-sm text-[#3f5c48]">
-          Gold {formatGold(gold)} · Score {formatScore(score)} · Best{" "}
+          Mouse {formatGold(gold)} · Score {formatScore(score)} · Best{" "}
           {formatScore(highScore)}
         </p>
       </div>
