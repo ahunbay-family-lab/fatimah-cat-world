@@ -37,6 +37,7 @@ export function loadMeowSounds(): Promise<void> {
       "/sounds/meow1.wav",
       "/sounds/meow2.wav",
       "/sounds/meow3.wav",
+      "/sounds/meow4.wav",
     ];
     meowBuffers = await Promise.all(urls.map((url) => decodeMeow(url, ctx)));
   })();
@@ -67,16 +68,23 @@ export function playMeow() {
   source.buffer = buffer;
 
   const gain = ctx.createGain();
-  gain.gain.value = 0.92;
+  gain.gain.value = 1;
 
-  const highpass = ctx.createBiquadFilter();
-  highpass.type = "highpass";
-  highpass.frequency.value = 120;
+  const warmth = ctx.createBiquadFilter();
+  warmth.type = "peaking";
+  warmth.frequency.value = 720;
+  warmth.Q.value = 0.9;
+  warmth.gain.value = 2.5;
 
-  source.playbackRate.value = 0.97 + Math.random() * 0.06;
+  const lowpass = ctx.createBiquadFilter();
+  lowpass.type = "lowpass";
+  lowpass.frequency.value = 9000;
 
-  source.connect(highpass);
-  highpass.connect(gain);
+  source.playbackRate.value = 0.99 + Math.random() * 0.03;
+
+  source.connect(warmth);
+  warmth.connect(lowpass);
+  lowpass.connect(gain);
   gain.connect(ctx.destination);
   source.start();
 }
