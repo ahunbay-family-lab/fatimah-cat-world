@@ -8,6 +8,7 @@ import {
   formatScore,
   type Obstacle,
 } from "@/lib/catGame";
+import { getDanceLyric } from "@/lib/danceSong";
 import { drawFlagHat } from "@/lib/flagHat";
 import { drawGoldHud } from "@/lib/mouseDraw";
 import type { GameSprites } from "@/lib/sprites";
@@ -96,25 +97,20 @@ export function drawCat(
   isPlaying: boolean,
   isOnSurface: boolean,
   isCelebrating = false,
+  celebrationFrame = 0,
 ) {
+  if (isCelebrating) {
+    drawCelebrationCat(ctx, sprites, celebrationFrame);
+    return;
+  }
+
   const x = CAT_X;
-  const bob =
-    isCelebrating
-      ? Math.sin(frame / 3) * 16 + Math.sin(frame / 7) * 5
-      : isPlaying && isOnSurface
-        ? Math.sin(frame / 4) * 1.2
-        : 0;
-  const sway = isCelebrating ? Math.sin(frame / 4) * 14 : 0;
-  const wiggle = isCelebrating ? Math.sin(frame / 5) * 0.18 : 0;
-  const stretch = isCelebrating ? 1 + Math.sin(frame / 6) * 0.1 : 1;
+  const bob = isPlaying && isOnSurface ? Math.sin(frame / 4) * 1.2 : 0;
 
   if (sprites) {
     let image = sprites.cat;
 
-    if (isCelebrating) {
-      const danceIndex = Math.floor(frame / 3) % sprites.catRuns.length;
-      image = sprites.catRuns[danceIndex] ?? sprites.cat;
-    } else if (isPlaying && isOnSurface && sprites.catRuns.length > 0) {
+    if (isPlaying && isOnSurface && sprites.catRuns.length > 0) {
       const runIndex = Math.floor(frame / 5) % sprites.catRuns.length;
       image = sprites.catRuns[runIndex] ?? sprites.cat;
     } else if (isPlaying && !isOnSurface) {
@@ -124,52 +120,178 @@ export function drawCat(
     }
 
     const catYPos = y + bob;
-    ctx.save();
-    ctx.translate(x + CAT_WIDTH / 2 + sway, catYPos + CAT_HEIGHT / 2);
-    ctx.rotate(wiggle);
-    ctx.scale(stretch, 1 / stretch);
-    ctx.translate(-(x + CAT_WIDTH / 2), -(catYPos + CAT_HEIGHT / 2));
     drawImageCover(ctx, image, x, catYPos, CAT_WIDTH, CAT_HEIGHT);
     const spriteRect = getSpriteDrawRect(image, x, catYPos, CAT_WIDTH, CAT_HEIGHT);
     drawFlagHat(ctx, spriteRect);
-    ctx.restore();
-
-    if (isCelebrating) {
-      drawMeowBubble(ctx, x + CAT_WIDTH * 0.5 + sway, catYPos - 12);
-    }
     return;
   }
 
   ctx.fillStyle = "#e08a3c";
-  ctx.fillRect(x + sway, y, CAT_WIDTH, CAT_HEIGHT);
+  ctx.fillRect(x, y, CAT_WIDTH, CAT_HEIGHT);
   drawFlagHat(ctx, {
-    drawX: x + sway,
+    drawX: x,
     drawY: y,
     drawW: CAT_WIDTH,
     drawH: CAT_HEIGHT,
   });
 }
 
-function drawMeowBubble(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  ctx.save();
-  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-  ctx.strokeStyle = "#3d5a40";
-  ctx.lineWidth = 2;
+type RobotPose = {
+  hop: number;
+  tilt: number;
+  glitch: number;
+  leftArm: number;
+  rightArm: number;
+  knee: number;
+};
+
+const ROBOT_POSES: RobotPose[] = [
+  { hop: -10, tilt: -0.12, glitch: -4, leftArm: -2.35, rightArm: -0.45, knee: 6 },
+  { hop: 0, tilt: 0.04, glitch: 4, leftArm: -1.75, rightArm: -1.55, knee: -4 },
+  { hop: -8, tilt: 0.12, glitch: -3, leftArm: -0.35, rightArm: -2.25, knee: 5 },
+  { hop: 0, tilt: -0.05, glitch: 3, leftArm: 0.35, rightArm: 0.55, knee: -3 },
+  { hop: -12, tilt: 0.1, glitch: -5, leftArm: -2.1, rightArm: -0.2, knee: 7 },
+  { hop: -2, tilt: -0.08, glitch: 5, leftArm: -1.4, rightArm: -1.7, knee: -5 },
+  { hop: -9, tilt: 0.14, glitch: -4, leftArm: -0.2, rightArm: -2.4, knee: 6 },
+  { hop: 0, tilt: 0, glitch: 4, leftArm: 0.5, rightArm: 0.4, knee: -2 },
+];
+
+function drawRobotArm(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  angle: number,
+) {
+  const upperLength = 20;
+  const lowerLength = 17;
+  const elbowAngle = angle + 0.75 * Math.sign(angle || 1);
+
+  const elbowX = x + Math.cos(angle) * upperLength;
+  const elbowY = y + Math.sin(angle) * upperLength;
+  const handX = elbowX + Math.cos(elbowAngle) * lowerLength;
+  const handY = elbowY + Math.sin(elbowAngle) * lowerLength;
+
+  ctx.strokeStyle = "#d97706";
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
   ctx.beginPath();
-  ctx.roundRect(x - 28, y - 34, 76, 28, 8);
+  ctx.moveTo(x, y);
+  ctx.lineTo(elbowX, elbowY);
+  ctx.lineTo(handX, handY);
+  ctx.stroke();
+
+  ctx.fillStyle = "#b8b8b8";
+  for (const joint of [
+    { px: x, py: y, radius: 4 },
+    { px: elbowX, py: elbowY, radius: 3 },
+    { px: handX, py: handY, radius: 3 },
+  ]) {
+    ctx.beginPath();
+    ctx.arc(joint.px, joint.py, joint.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+/** Cat stands on two legs and does a stiff robot dance. */
+function drawCelebrationCat(
+  ctx: CanvasRenderingContext2D,
+  sprites: GameSprites | null,
+  celebrationFrame: number,
+) {
+  const pose = ROBOT_POSES[Math.floor(celebrationFrame / 5) % ROBOT_POSES.length];
+  const footX = CAT_X + 44;
+  const footY = GROUND_Y;
+  const standHeight = CAT_WIDTH + 8;
+  const standWidth = CAT_HEIGHT + 6;
+  const image = sprites?.cat ?? null;
+  const lyric = getDanceLyric(celebrationFrame);
+
+  ctx.save();
+  ctx.translate(footX + pose.glitch, footY + pose.hop);
+  ctx.rotate(pose.tilt);
+  ctx.rotate(-Math.PI / 2 + 0.1);
+
+  drawRobotArm(ctx, -22, -standHeight + 8, pose.leftArm);
+  drawRobotArm(ctx, 22, -standHeight + 8, pose.rightArm);
+
+  if (image) {
+    drawImageCover(ctx, image, -standWidth / 2, -standHeight - 6, standWidth, standHeight);
+    const spriteRect = getSpriteDrawRect(
+      image,
+      -standWidth / 2,
+      -standHeight - 6,
+      standWidth,
+      standHeight,
+    );
+    drawFlagHat(ctx, spriteRect);
+  } else {
+    ctx.fillStyle = "#e08a3c";
+    ctx.fillRect(-standWidth / 2, -standHeight - 6, standWidth, standHeight);
+    drawFlagHat(ctx, {
+      drawX: -standWidth / 2,
+      drawY: -standHeight - 6,
+      drawW: standWidth,
+      drawH: standHeight,
+    });
+  }
+
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "#3d5a40";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(-14, 8, 24, 16, 4);
   ctx.fill();
   ctx.stroke();
   ctx.beginPath();
-  ctx.moveTo(x + 4, y - 6);
-  ctx.lineTo(x + 12, y);
-  ctx.lineTo(x - 2, y - 6);
+  ctx.roundRect(2, 8 + pose.knee, 24, 16, 4);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.restore();
+
+  drawSongBubble(ctx, footX, footY - standHeight - 36 + pose.hop, lyric);
+
+  if (celebrationFrame % 10 < 5) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(61, 90, 64, 0.45)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(footX - 50, footY - 4);
+    ctx.lineTo(footX - 30, footY - 18);
+    ctx.moveTo(footX + 50, footY - 6);
+    ctx.lineTo(footX + 28, footY - 20);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawSongBubble(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  text: string,
+) {
+  const width = Math.max(150, text.length * 9 + 28);
+  ctx.save();
+  ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
+  ctx.strokeStyle = "#3d5a40";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x - width / 2, y - 30, width, 34, 10);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x - 8, y + 4);
+  ctx.lineTo(x, y + 14);
+  ctx.lineTo(x + 10, y + 4);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = "#1f3d2a";
-  ctx.font = "bold 16px ui-monospace, SFMono-Regular, Menlo, monospace";
+  ctx.font = "bold 15px ui-monospace, SFMono-Regular, Menlo, monospace";
   ctx.textAlign = "center";
-  ctx.fillText("Meow!", x + 10, y - 14);
+  ctx.fillText(`🤖 ${text}`, x, y - 8);
   ctx.restore();
 }
 
@@ -249,7 +371,7 @@ export function drawHud(
     ctx.textAlign = "center";
     ctx.font = "bold 22px ui-monospace, SFMono-Regular, Menlo, monospace";
     ctx.fillStyle = "#1f3d2a";
-    ctx.fillText("Meow! 🎉", GAME_WIDTH / 2, GAME_HEIGHT / 2);
+    ctx.fillText("Robot dance! 🤖", GAME_WIDTH / 2, GAME_HEIGHT / 2);
   }
 
   if (status === "gameover") {

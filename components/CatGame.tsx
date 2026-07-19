@@ -37,7 +37,8 @@ import {
 } from "@/lib/catGame";
 import { loadBarkSounds, playDogBark, unlockAudio } from "@/lib/barkSound";
 import { drawCloud } from "@/lib/cloudDraw";
-import { speakMeow } from "@/lib/meowSound";
+import { playDanceSong, stopDanceSong } from "@/lib/danceSong";
+import { loadMeowSounds, playMeow } from "@/lib/meowSound";
 import { drawMouse } from "@/lib/mouseDraw";
 import { loadGameSprites, type GameSprites } from "@/lib/sprites";
 
@@ -120,6 +121,7 @@ export function CatGame() {
   }, [status]);
 
   function resetRun() {
+    stopDanceSong();
     catYRef.current = GROUND_Y - CAT_HEIGHT;
     velocityRef.current = 0;
     obstaclesRef.current = [];
@@ -204,6 +206,10 @@ export function CatGame() {
       console.error(error);
     });
 
+    void loadMeowSounds().catch((error: unknown) => {
+      console.error(error);
+    });
+
     function endGame() {
       statusRef.current = "gameover";
       setStatus("gameover");
@@ -218,7 +224,8 @@ export function CatGame() {
       celebrationFramesRef.current = CELEBRATION_FRAMES;
       statusRef.current = "celebrating";
       setStatus("celebrating");
-      speakMeow();
+      playMeow();
+      playDanceSong();
     }
 
     function allMice(): Mouse[] {
@@ -432,6 +439,9 @@ export function CatGame() {
       const onGround = catYRef.current >= GROUND_Y - CAT_HEIGHT - 0.5;
       const onSurface = onGround || onCloudRef.current;
       const isCelebrating = statusRef.current === "celebrating";
+      const celebrationFrame = isCelebrating
+        ? CELEBRATION_FRAMES - celebrationFramesRef.current
+        : 0;
       drawCat(
         context,
         sprites,
@@ -440,6 +450,7 @@ export function CatGame() {
         statusRef.current === "playing" || isCelebrating,
         onSurface,
         isCelebrating,
+        celebrationFrame,
       );
       drawHud(
         context,
@@ -471,7 +482,7 @@ export function CatGame() {
           Cat Runner
         </h1>
         <p className="mt-2 text-base text-[#3f5c48] sm:text-lg">
-          Jump on cloud mice, dodge dogs, dance every 200 points!
+          Jump on cloud mice, dodge dogs, robot dance every 200 points!
         </p>
       </header>
 
