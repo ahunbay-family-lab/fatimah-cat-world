@@ -8,7 +8,6 @@ import {
   formatScore,
   type Obstacle,
 } from "@/lib/catGame";
-import { getDanceLyric } from "@/lib/danceSong";
 import { drawFlagHat } from "@/lib/flagHat";
 import { drawGoldHud } from "@/lib/mouseDraw";
 import type { GameSprites } from "@/lib/sprites";
@@ -205,7 +204,6 @@ function drawCelebrationCat(
   const standHeight = CAT_WIDTH + 8;
   const standWidth = CAT_HEIGHT + 6;
   const image = sprites?.cat ?? null;
-  const lyric = getDanceLyric(celebrationFrame);
 
   ctx.save();
   ctx.translate(footX + pose.glitch, footY + pose.hop);
@@ -250,7 +248,7 @@ function drawCelebrationCat(
 
   ctx.restore();
 
-  drawSongBubble(ctx, footX, footY - standHeight - 36 + pose.hop, lyric);
+  drawCelebrateBubble(ctx, footX, footY - standHeight - 36 + pose.hop);
 
   if (celebrationFrame % 10 < 5) {
     ctx.save();
@@ -266,19 +264,13 @@ function drawCelebrationCat(
   }
 }
 
-function drawSongBubble(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  text: string,
-) {
-  const width = Math.max(150, text.length * 9 + 28);
+function drawCelebrateBubble(ctx: CanvasRenderingContext2D, x: number, y: number) {
   ctx.save();
   ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
   ctx.strokeStyle = "#3d5a40";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.roundRect(x - width / 2, y - 30, width, 34, 10);
+  ctx.roundRect(x - 34, y - 30, 68, 34, 10);
   ctx.fill();
   ctx.stroke();
   ctx.beginPath();
@@ -289,9 +281,9 @@ function drawSongBubble(
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = "#1f3d2a";
-  ctx.font = "bold 15px ui-monospace, SFMono-Regular, Menlo, monospace";
+  ctx.font = "bold 18px ui-monospace, SFMono-Regular, Menlo, monospace";
   ctx.textAlign = "center";
-    ctx.fillText(`🎵 ${text}`, x, y - 8);
+  ctx.fillText("🎉", x, y - 8);
   ctx.restore();
 }
 
