@@ -15,11 +15,15 @@ export function drawCloud(
   ctx.lineWidth = 1.5;
 
   const baseY = y + bob;
-  const bumps = [
-    { cx: x + width * 0.2, r: height * 0.55 },
-    { cx: x + width * 0.45, r: height * 0.7 },
-    { cx: x + width * 0.72, r: height * 0.6 },
-  ];
+  const bumpCount = Math.max(3, Math.round(width / 55));
+  const bumps = Array.from({ length: bumpCount }, (_, index) => {
+    const t = (index + 0.5) / bumpCount;
+    const wobble = Math.sin(index * 1.7 + cloud.id) * 0.04;
+    return {
+      cx: x + width * (0.12 + t * 0.76),
+      r: height * (0.52 + Math.abs(Math.sin(index * 2.1)) * 0.22 + wobble),
+    };
+  });
 
   ctx.beginPath();
   ctx.moveTo(x, baseY + height * 0.45);

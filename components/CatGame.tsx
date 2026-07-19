@@ -430,6 +430,7 @@ export function CatGame() {
       }
 
       const onGround = catYRef.current >= GROUND_Y - CAT_HEIGHT - 0.5;
+      const onSurface = onGround || onCloudRef.current;
       const isCelebrating = statusRef.current === "celebrating";
       drawCat(
         context,
@@ -437,7 +438,7 @@ export function CatGame() {
         catYRef.current,
         frameRef.current,
         statusRef.current === "playing" || isCelebrating,
-        onGround,
+        onSurface,
         isCelebrating,
       );
       drawHud(

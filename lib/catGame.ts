@@ -95,12 +95,16 @@ function createCloudMouse(cloudX: number, platformY: number, offset: number): Mo
 
 /** Cloud platform with mice sitting on top. */
 export function createCloud(x: number, platformY: number): CloudPlatform {
-  const width = 95 + Math.floor(Math.random() * 35);
-  const mice = [
-    createCloudMouse(x, platformY, 18),
-    createCloudMouse(x, platformY, 48),
-    createCloudMouse(x, platformY, 78),
-  ];
+  const width = 160 + Math.floor(Math.random() * 50);
+  const padding = 18;
+  const usable = width - padding * 2 - MOUSE_WIDTH;
+  const mice = [0, 1, 2, 3].map((index) =>
+    createCloudMouse(
+      x,
+      platformY,
+      padding + Math.floor((usable * index) / 3),
+    ),
+  );
   return {
     id: nextCloudId++,
     x,
@@ -115,18 +119,18 @@ export function createCloud(x: number, platformY: number): CloudPlatform {
 export function spawnCloudGroup(startX: number): CloudPlatform[] {
   const pattern = Math.random();
   if (pattern < 0.35) {
-    return [createCloud(startX, 168)];
+    return [createCloud(startX, 132)];
   }
   if (pattern < 0.7) {
     return [
-      createCloud(startX, 168),
-      createCloud(startX + 105, 128),
-      createCloud(startX + 215, 145),
+      createCloud(startX, 132),
+      createCloud(startX + 175, 98),
+      createCloud(startX + 350, 115),
     ];
   }
   return [
-    createCloud(startX, 165),
-    createCloud(startX + 280, 118),
+    createCloud(startX, 128),
+    createCloud(startX + 340, 88),
   ];
 }
 

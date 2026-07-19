@@ -94,28 +94,30 @@ export function drawCat(
   y: number,
   frame: number,
   isPlaying: boolean,
-  isOnGround: boolean,
+  isOnSurface: boolean,
   isCelebrating = false,
 ) {
   const x = CAT_X;
   const bob =
     isCelebrating
-      ? Math.sin(frame / 4) * 12
-      : isPlaying && isOnGround
+      ? Math.sin(frame / 3) * 16 + Math.sin(frame / 7) * 5
+      : isPlaying && isOnSurface
         ? Math.sin(frame / 4) * 1.2
         : 0;
-  const sway = isCelebrating ? Math.sin(frame / 5) * 8 : 0;
+  const sway = isCelebrating ? Math.sin(frame / 4) * 14 : 0;
+  const wiggle = isCelebrating ? Math.sin(frame / 5) * 0.18 : 0;
+  const stretch = isCelebrating ? 1 + Math.sin(frame / 6) * 0.1 : 1;
 
   if (sprites) {
     let image = sprites.cat;
 
     if (isCelebrating) {
-      const danceIndex = Math.floor(frame / 4) % sprites.catRuns.length;
+      const danceIndex = Math.floor(frame / 3) % sprites.catRuns.length;
       image = sprites.catRuns[danceIndex] ?? sprites.cat;
-    } else if (isPlaying && isOnGround && sprites.catRuns.length > 0) {
+    } else if (isPlaying && isOnSurface && sprites.catRuns.length > 0) {
       const runIndex = Math.floor(frame / 5) % sprites.catRuns.length;
       image = sprites.catRuns[runIndex] ?? sprites.cat;
-    } else if (isPlaying && !isOnGround) {
+    } else if (isPlaying && !isOnSurface) {
       image = sprites.catRuns[0] ?? sprites.cat;
     } else if (sprites.catRuns[1]) {
       image = sprites.catRuns[1];
@@ -123,14 +125,17 @@ export function drawCat(
 
     const catYPos = y + bob;
     ctx.save();
-    ctx.translate(sway, 0);
+    ctx.translate(x + CAT_WIDTH / 2 + sway, catYPos + CAT_HEIGHT / 2);
+    ctx.rotate(wiggle);
+    ctx.scale(stretch, 1 / stretch);
+    ctx.translate(-(x + CAT_WIDTH / 2), -(catYPos + CAT_HEIGHT / 2));
     drawImageCover(ctx, image, x, catYPos, CAT_WIDTH, CAT_HEIGHT);
     const spriteRect = getSpriteDrawRect(image, x, catYPos, CAT_WIDTH, CAT_HEIGHT);
     drawFlagHat(ctx, spriteRect);
     ctx.restore();
 
     if (isCelebrating) {
-      drawMeowBubble(ctx, x + CAT_WIDTH * 0.5, catYPos - 8);
+      drawMeowBubble(ctx, x + CAT_WIDTH * 0.5 + sway, catYPos - 12);
     }
     return;
   }
