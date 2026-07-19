@@ -13,6 +13,8 @@ import {
   CAT_HEIGHT,
   CAT_WIDTH,
   CAT_X,
+  CELEBRATION_FRAMES,
+  CELEBRATION_SCORE_INTERVAL,
   GAME_HEIGHT,
   GAME_WIDTH,
   GOLD_PER_MOUSE,
@@ -28,14 +30,18 @@ import {
   formatGold,
   formatScore,
   mouseRowWidth,
+  spawnCloudGroup,
+  type CloudPlatform,
   type Mouse,
   type Obstacle,
 } from "@/lib/catGame";
 import { loadBarkSounds, playDogBark, unlockAudio } from "@/lib/barkSound";
+import { drawCloud } from "@/lib/cloudDraw";
+import { speakMeow } from "@/lib/meowSound";
 import { drawMouse } from "@/lib/mouseDraw";
 import { loadGameSprites, type GameSprites } from "@/lib/sprites";
 
-type GameStatus = "ready" | "playing" | "gameover";
+type GameStatus = "ready" | "playing" | "celebrating" | "gameover";
 
 const HIGH_SCORE_KEY = "cat-runner-high-score";
 
@@ -93,12 +99,16 @@ export function CatGame() {
   const velocityRef = useRef(0);
   const obstaclesRef = useRef<Obstacle[]>([]);
   const miceRef = useRef<Mouse[]>([]);
+  const cloudsRef = useRef<CloudPlatform[]>([]);
+  const onCloudRef = useRef(false);
   const speedRef = useRef(BASE_SPEED);
   const frameRef = useRef(0);
   const groundOffsetRef = useRef(0);
   const spawnTimerRef = useRef(0);
   const touchFramesRef = useRef(0);
   const miceComboRef = useRef(0);
+  const celebrationFramesRef = useRef(0);
+  const celebratedMilestoneRef = useRef(0);
   const spritesRef = useRef<GameSprites | null>(null);
 
   useEffect(() => {
@@ -114,12 +124,16 @@ export function CatGame() {
     velocityRef.current = 0;
     obstaclesRef.current = [];
     miceRef.current = [];
+    cloudsRef.current = [];
+    onCloudRef.current = false;
     speedRef.current = BASE_SPEED;
     frameRef.current = 0;
     groundOffsetRef.current = 0;
     spawnTimerRef.current = 90;
     touchFramesRef.current = 0;
     miceComboRef.current = 0;
+    celebrationFramesRef.current = 0;
+    celebratedMilestoneRef.current = 0;
     scoreRef.current = 0;
     goldRef.current = 0;
     setScore(0);
@@ -139,10 +153,12 @@ export function CatGame() {
       startGame();
       return;
     }
+    if (statusRef.current === "celebrating") return;
 
     const onGround = catYRef.current >= GROUND_Y - CAT_HEIGHT - 0.5;
-    if (onGround) {
+    if (onGround || onCloudRef.current) {
       velocityRef.current = JUMP_VELOCITY;
+      onCloudRef.current = false;
     }
   }
 
@@ -198,19 +214,32 @@ export function CatGame() {
       }
     }
 
+    function startCelebration() {
+      celebrationFramesRef.current = CELEBRATION_FRAMES;
+      statusRef.current = "celebrating";
+      setStatus("celebrating");
+      speakMeow();
+    }
+
+    function allMice(): Mouse[] {
+      return [
+        ...miceRef.current,
+        ...cloudsRef.current.flatMap((cloud) => cloud.mice),
+      ];
+    }
+
     function handleMice() {
       let touchingMouse = false;
       let goldChanged = false;
 
-      for (const mouse of miceRef.current) {
-        const mouseY = GROUND_Y - mouse.height;
+      for (const mouse of allMice()) {
         const hit = boxesOverlap(
           CAT_X,
           catYRef.current,
           CAT_WIDTH,
           CAT_HEIGHT,
           mouse.x,
-          mouseY,
+          mouse.y,
           mouse.width,
           mouse.height,
           4,
@@ -243,7 +272,81 @@ export function CatGame() {
       }
     }
 
+    function landOnSurfaces() {
+      const prevBottom = catYRef.current + CAT_HEIGHT - velocityRef.current;
+      const catBottom = catYRef.current + CAT_HEIGHT;
+      let landed = false;
+
+      if (velocityRef.current > 0) {
+        for (const cloud of cloudsRef.current) {
+          const overlapsX =
+            CAT_X + CAT_WIDTH > cloud.x + 8 &&
+            CAT_X < cloud.x + cloud.width - 8;
+          if (
+            overlapsX &&
+            catBottom >= cloud.y - 2 &&
+            prevBottom <= cloud.y + 12
+          ) {
+            catYRef.current = cloud.y - CAT_HEIGHT;
+            velocityRef.current = 0;
+            onCloudRef.current = true;
+            landed = true;
+            break;
+          }
+        }
+      }
+
+      if (!landed) {
+        onCloudRef.current = false;
+        if (catYRef.current >= GROUND_Y - CAT_HEIGHT) {
+          catYRef.current = GROUND_Y - CAT_HEIGHT;
+          velocityRef.current = 0;
+        }
+      }
+    }
+
+    function moveWorld() {
+      miceRef.current = miceRef.current
+        .map((mouse) => ({ ...mouse, x: mouse.x - speedRef.current }))
+        .filter((mouse) => mouse.x + mouse.width > -10);
+
+      cloudsRef.current = cloudsRef.current
+        .map((cloud) => ({
+          ...cloud,
+          x: cloud.x - speedRef.current,
+          mice: cloud.mice.map((mouse) => ({
+            ...mouse,
+            x: mouse.x - speedRef.current,
+          })),
+        }))
+        .filter((cloud) => cloud.x + cloud.width > -20);
+
+      obstaclesRef.current = obstaclesRef.current
+        .map((obstacle) => ({ ...obstacle, x: obstacle.x - speedRef.current }))
+        .filter((obstacle) => obstacle.x + obstacle.width > -10);
+    }
+
+    function checkCelebration() {
+      const milestone =
+        Math.floor(scoreRef.current / CELEBRATION_SCORE_INTERVAL) *
+        CELEBRATION_SCORE_INTERVAL;
+      if (milestone > 0 && milestone > celebratedMilestoneRef.current) {
+        celebratedMilestoneRef.current = milestone;
+        startCelebration();
+      }
+    }
+
     function update() {
+      if (statusRef.current === "celebrating") {
+        frameRef.current += 1;
+        celebrationFramesRef.current -= 1;
+        if (celebrationFramesRef.current <= 0) {
+          statusRef.current = "playing";
+          setStatus("playing");
+        }
+        return;
+      }
+
       if (statusRef.current !== "playing") return;
 
       frameRef.current += 1;
@@ -255,10 +358,7 @@ export function CatGame() {
 
       velocityRef.current += GRAVITY;
       catYRef.current += velocityRef.current;
-      if (catYRef.current >= GROUND_Y - CAT_HEIGHT) {
-        catYRef.current = GROUND_Y - CAT_HEIGHT;
-        velocityRef.current = 0;
-      }
+      landOnSurfaces();
 
       spawnTimerRef.current -= 1;
       if (spawnTimerRef.current <= 0) {
@@ -266,17 +366,11 @@ export function CatGame() {
         const miceStartX = dogX - mouseRowWidth() - MOUSE_DOG_GAP;
         miceRef.current.push(...createMouseRow(miceStartX));
         obstaclesRef.current.push(createObstacle(dogX));
+        cloudsRef.current.push(...spawnCloudGroup(GAME_WIDTH + 40));
         spawnTimerRef.current = 70 + Math.floor(Math.random() * 70);
       }
 
-      miceRef.current = miceRef.current
-        .map((mouse) => ({ ...mouse, x: mouse.x - speedRef.current }))
-        .filter((mouse) => mouse.x + mouse.width > -10);
-
-      obstaclesRef.current = obstaclesRef.current
-        .map((obstacle) => ({ ...obstacle, x: obstacle.x - speedRef.current }))
-        .filter((obstacle) => obstacle.x + obstacle.width > -10);
-
+      moveWorld();
       handleMice();
 
       for (const obstacle of obstaclesRef.current) {
@@ -302,6 +396,8 @@ export function CatGame() {
         setGold(Math.floor(goldRef.current));
       }
 
+      checkCelebration();
+
       const dogIsBarking = Math.floor(frameRef.current / 8) % 2 === 0;
       const dogOnScreen = obstaclesRef.current.some(
         (obstacle) =>
@@ -314,25 +410,35 @@ export function CatGame() {
 
     function render() {
       drawSky(context);
+      for (const cloud of cloudsRef.current) {
+        drawCloud(context, cloud, frameRef.current);
+      }
       drawGround(context, groundOffsetRef.current);
 
-      const sprites = spritesRef.current;
       for (const mouse of miceRef.current) {
         drawMouse(context, mouse, frameRef.current);
       }
+      for (const cloud of cloudsRef.current) {
+        for (const mouse of cloud.mice) {
+          drawMouse(context, mouse, frameRef.current);
+        }
+      }
 
+      const sprites = spritesRef.current;
       for (const obstacle of obstaclesRef.current) {
         drawDog(context, sprites, obstacle, frameRef.current);
       }
 
       const onGround = catYRef.current >= GROUND_Y - CAT_HEIGHT - 0.5;
+      const isCelebrating = statusRef.current === "celebrating";
       drawCat(
         context,
         sprites,
         catYRef.current,
         frameRef.current,
-        statusRef.current === "playing",
+        statusRef.current === "playing" || isCelebrating,
         onGround,
+        isCelebrating,
       );
       drawHud(
         context,
@@ -364,7 +470,7 @@ export function CatGame() {
           Cat Runner
         </h1>
         <p className="mt-2 text-base text-[#3f5c48] sm:text-lg">
-          Jump over dogs, run through mice rows to earn gold!
+          Jump on cloud mice, dodge dogs, dance every 200 points!
         </p>
       </header>
 
