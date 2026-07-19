@@ -19,9 +19,9 @@ export const SPEED_GROWTH = 0.0008;
 export const MOUSE_WIDTH = 22;
 export const MOUSE_HEIGHT = 16;
 export const MOUSE_ROW_COUNT = 5;
-export const MOUSE_SPACING = 30;
+export const MOUSE_SPACING = 50;
 export const GOLD_PER_MOUSE = 2;
-export const MOUSE_DOG_GAP = 36;
+export const MOUSE_DOG_GAP = 48;
 
 export type Obstacle = {
   x: number;
