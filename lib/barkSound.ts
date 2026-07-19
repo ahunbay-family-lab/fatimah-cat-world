@@ -1,5 +1,7 @@
 /** Dog bark sounds — real recorded woof audio clips. */
 
+import { duckNasheedForBark } from "@/lib/nasheedSound";
+
 let audioContext: AudioContext | null = null;
 let barkBuffers: AudioBuffer[] = [];
 let loadPromise: Promise<void> | null = null;
@@ -94,4 +96,5 @@ export function playDogBark(force = false) {
   source.connect(gain);
   gain.connect(ctx.destination);
   source.start();
+  duckNasheedForBark();
 }

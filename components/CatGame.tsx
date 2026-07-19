@@ -38,12 +38,28 @@ import {
 import { loadBarkSounds, playDogBark, unlockAudio } from "@/lib/barkSound";
 import { drawCloud } from "@/lib/cloudDraw";
 import { loadMeowSounds, playMeow } from "@/lib/meowSound";
+import {
+  loadNasheed,
+  restoreNasheedAfterCelebration,
+  setNasheedEnabled,
+  softenNasheedForCelebration,
+  startNasheed,
+  unlockNasheedAudio,
+} from "@/lib/nasheedSound";
 import { drawMouse } from "@/lib/mouseDraw";
 import { loadGameSprites, type GameSprites } from "@/lib/sprites";
 
 type GameStatus = "ready" | "playing" | "celebrating" | "gameover";
 
 const HIGH_SCORE_KEY = "cat-runner-high-score";
+const NASHEED_KEY = "cat-runner-nasheed";
+
+function readNasheedEnabled(): boolean {
+  if (typeof window === "undefined") return true;
+  const saved = localStorage.getItem(NASHEED_KEY);
+  if (saved === null) return true;
+  return saved === "true";
+}
 
 const highScoreListeners = new Set<() => void>();
 
@@ -85,6 +101,7 @@ export function CatGame() {
   const [status, setStatus] = useState<GameStatus>("ready");
   const [score, setScore] = useState(0);
   const [gold, setGold] = useState(0);
+  const [nasheedOn, setNasheedOn] = useState(() => readNasheedEnabled());
   const highScore = useSyncExternalStore(
     subscribeHighScore,
     readHighScore,
@@ -119,6 +136,27 @@ export function CatGame() {
     statusRef.current = status;
   }, [status]);
 
+  useEffect(() => {
+    setNasheedEnabled(nasheedOn);
+    unlockNasheedAudio();
+    void loadNasheed().then(() => {
+      if (nasheedOn) void startNasheed();
+    });
+    // Only initialize background audio once on first mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function toggleNasheed() {
+    unlockNasheedAudio();
+    const next = !nasheedOn;
+    setNasheedOn(next);
+    localStorage.setItem(NASHEED_KEY, String(next));
+    setNasheedEnabled(next);
+    if (next) {
+      void startNasheed();
+    }
+  }
+
   function resetRun() {
     catYRef.current = GROUND_Y - CAT_HEIGHT;
     velocityRef.current = 0;
@@ -142,6 +180,10 @@ export function CatGame() {
 
   function startGame() {
     unlockAudio();
+    unlockNasheedAudio();
+    if (nasheedOn) {
+      void startNasheed();
+    }
     resetRun();
     setStatus("playing");
     statusRef.current = "playing";
@@ -149,6 +191,10 @@ export function CatGame() {
 
   function jump() {
     unlockAudio();
+    unlockNasheedAudio();
+    if (nasheedOn) {
+      void startNasheed();
+    }
     if (statusRef.current === "ready" || statusRef.current === "gameover") {
       startGame();
       return;
@@ -222,6 +268,7 @@ export function CatGame() {
       celebrationFramesRef.current = CELEBRATION_FRAMES;
       statusRef.current = "celebrating";
       setStatus("celebrating");
+      softenNasheedForCelebration();
       playMeow();
     }
 
@@ -347,6 +394,7 @@ export function CatGame() {
         if (celebrationFramesRef.current <= 0) {
           statusRef.current = "playing";
           setStatus("playing");
+          restoreNasheedAfterCelebration();
         }
         return;
       }
@@ -371,7 +419,7 @@ export function CatGame() {
         miceRef.current.push(...createMouseRow(miceStartX));
         obstaclesRef.current.push(createObstacle(dogX));
         cloudsRef.current.push(...spawnCloudGroup(GAME_WIDTH + 40));
-        spawnTimerRef.current = 70 + Math.floor(Math.random() * 70);
+        spawnTimerRef.current = 85 + Math.floor(Math.random() * 85);
       }
 
       moveWorld();
@@ -473,7 +521,7 @@ export function CatGame() {
   }, []);
 
   return (
-    <section className="flex w-full max-w-5xl flex-col items-center gap-5">
+    <section className="flex w-full max-w-6xl flex-col items-center gap-5">
       <header className="text-center">
         <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight text-[#1f3d2a] sm:text-5xl">
           Cat Runner
@@ -483,7 +531,7 @@ export function CatGame() {
         </p>
       </header>
 
-      <div className="w-full overflow-hidden border-2 border-[#3d5a40] bg-[#d9e8c8] shadow-[0_8px_0_#2f4632]">
+      <div className="relative w-full overflow-hidden border-2 border-[#3d5a40] bg-[#d9e8c8] shadow-[0_8px_0_#2f4632]">
         <canvas
           ref={canvasRef}
           width={GAME_WIDTH}
@@ -493,6 +541,18 @@ export function CatGame() {
           aria-label="Cat runner game canvas"
           onPointerDown={jump}
         />
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            toggleNasheed();
+          }}
+          className="absolute bottom-3 right-3 min-h-10 border-2 border-[#3d5a40] bg-[#f5f0e1]/95 px-3 py-1.5 text-sm font-semibold text-[#1f3d2a] shadow-[0_3px_0_#2f4632] transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3d5a40]"
+          aria-label={nasheedOn ? "Turn nasheed off" : "Turn nasheed on"}
+          aria-pressed={nasheedOn}
+        >
+          {nasheedOn ? "Nasheed: On" : "Nasheed: Off"}
+        </button>
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3">

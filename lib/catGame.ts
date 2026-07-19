@@ -1,8 +1,8 @@
 /** Shared sizes and helpers for the cat runner game. */
 
-export const GAME_WIDTH = 900;
-export const GAME_HEIGHT = 280;
-export const GROUND_Y = 230;
+export const GAME_WIDTH = 1150;
+export const GAME_HEIGHT = 380;
+export const GROUND_Y = 310;
 
 export const CAT_WIDTH = 84;
 export const CAT_HEIGHT = 56;
@@ -19,7 +19,7 @@ export const SPEED_GROWTH = 0.0008;
 export const MOUSE_WIDTH = 22;
 export const MOUSE_HEIGHT = 16;
 export const MOUSE_ROW_COUNT = 5;
-export const MOUSE_SPACING = 90;
+export const MOUSE_SPACING = 100;
 export const GOLD_PER_MOUSE = 2;
 export const MOUSE_DOG_GAP = 70;
 
@@ -119,18 +119,18 @@ export function createCloud(x: number, platformY: number): CloudPlatform {
 export function spawnCloudGroup(startX: number): CloudPlatform[] {
   const pattern = Math.random();
   if (pattern < 0.35) {
-    return [createCloud(startX, 132)];
+    return [createCloud(startX, 212)];
   }
   if (pattern < 0.7) {
     return [
-      createCloud(startX, 132),
-      createCloud(startX + 175, 98),
-      createCloud(startX + 350, 115),
+      createCloud(startX, 212),
+      createCloud(startX + 195, 178),
+      createCloud(startX + 390, 195),
     ];
   }
   return [
-    createCloud(startX, 128),
-    createCloud(startX + 340, 88),
+    createCloud(startX, 208),
+    createCloud(startX + 380, 168),
   ];
 }
 
