@@ -119,18 +119,18 @@ export function createCloud(x: number, platformY: number): CloudPlatform {
 export function spawnCloudGroup(startX: number): CloudPlatform[] {
   const pattern = Math.random();
   if (pattern < 0.35) {
-    return [createCloud(startX, 212)];
+    return [createCloud(startX, 187)];
   }
   if (pattern < 0.7) {
     return [
-      createCloud(startX, 212),
-      createCloud(startX + 195, 178),
-      createCloud(startX + 390, 195),
+      createCloud(startX, 187),
+      createCloud(startX + 195, 153),
+      createCloud(startX + 390, 170),
     ];
   }
   return [
-    createCloud(startX, 208),
-    createCloud(startX + 380, 168),
+    createCloud(startX, 183),
+    createCloud(startX + 380, 143),
   ];
 }
 
