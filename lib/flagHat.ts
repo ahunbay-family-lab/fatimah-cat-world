@@ -1,6 +1,6 @@
 /**
- * Draws a baseball cap on the cat with the East Turkistan flag (Kökbayraq).
- * Positioned using the cat sprite’s real drawn bounds so it sits on the head.
+ * Draws a Lincoln-style top hat on the cat with the East Turkistan flag.
+ * Tall crown sits above the head so the cat's face stays visible.
  */
 
 const FLAG_BLUE = "#0099FF";
@@ -73,75 +73,55 @@ export function drawEastTurkistanFlag(
   ctx.restore();
 }
 
-/** Baseball cap with East Turkistan flag, anchored on the cat’s drawn head. */
+/** Lincoln-style top hat with East Turkistan flag, above the cat's face. */
 export function drawFlagHat(ctx: CanvasRenderingContext2D, rect: CatSpriteRect) {
   const { drawX, drawY, drawW, drawH } = rect;
 
-  // Head sits upper-right in the sprite (cat faces right)
-  const headCenterX = drawX + drawW * 0.8;
-  const brimY = drawY + drawH * 0.19;
-  const crownW = drawW * 0.34;
-  const crownH = drawH * 0.17;
-  const crownLeft = headCenterX - crownW * 0.5;
-  const crownTop = brimY - crownH + 2;
+  // Head sits upper-right; brim rests on top of skull (not over eyes)
+  const headCenterX = drawX + drawW * 0.78;
+  const brimY = drawY + drawH * 0.07;
+  const brimW = drawW * 0.44;
+  const crownW = drawW * 0.3;
+  const crownH = drawH * 0.52;
+  const crownLeft = headCenterX - crownW / 2;
+  const crownTop = brimY - crownH;
 
   ctx.save();
 
-  // Cap crown — overlaps the top of the skull
-  ctx.fillStyle = "#1c1c1c";
+  // Wide flat brim (Lincoln hat) — sits on head, face stays below
+  ctx.fillStyle = "#141414";
   ctx.beginPath();
-  ctx.moveTo(crownLeft, brimY);
-  ctx.lineTo(crownLeft, crownTop + crownH * 0.3);
-  ctx.quadraticCurveTo(
-    headCenterX,
-    crownTop - crownH * 0.08,
-    crownLeft + crownW,
-    crownTop + crownH * 0.3,
+  ctx.ellipse(headCenterX, brimY, brimW / 2, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#1a1a1a";
+  ctx.fillRect(
+    headCenterX - brimW / 2,
+    brimY - 2,
+    brimW,
+    3,
   );
-  ctx.lineTo(crownLeft + crownW, brimY);
+
+  // Tall stovepipe crown rising upward
+  ctx.fillStyle = "#1c1c1c";
+  ctx.fillRect(crownLeft, crownTop, crownW, crownH);
+
+  // Slight taper at the top like a classic top hat
+  ctx.beginPath();
+  ctx.moveTo(crownLeft, crownTop);
+  ctx.lineTo(crownLeft + crownW * 0.08, crownTop - 3);
+  ctx.lineTo(crownLeft + crownW * 0.92, crownTop - 3);
+  ctx.lineTo(crownLeft + crownW, crownTop);
   ctx.closePath();
   ctx.fill();
 
-  // Brim over the forehead
-  ctx.fillStyle = "#141414";
-  ctx.beginPath();
-  ctx.ellipse(
-    headCenterX + crownW * 0.12,
-    brimY + 1,
-    crownW * 0.38,
-    3.5,
-    0.1,
-    0,
-    Math.PI * 2,
-  );
-  ctx.fill();
+  // Hat band
+  ctx.fillStyle = "#2a2a2a";
+  ctx.fillRect(crownLeft, brimY - crownH + 4, crownW, 3);
 
-  // Side straps pressed against the head
-  ctx.strokeStyle = "#2a2a2a";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(crownLeft + 2, brimY - crownH * 0.35);
-  ctx.quadraticCurveTo(
-    crownLeft - 1,
-    brimY - crownH * 0.05,
-    crownLeft + 4,
-    brimY + 1,
-  );
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(crownLeft + crownW - 2, brimY - crownH * 0.35);
-  ctx.quadraticCurveTo(
-    crownLeft + crownW + 1,
-    brimY - crownH * 0.05,
-    crownLeft + crownW - 4,
-    brimY + 1,
-  );
-  ctx.stroke();
-
-  // East Turkistan flag patch on the cap front
-  const flagW = crownW * 0.7;
-  const flagH = crownH * 0.58;
-  const flagX = headCenterX - flagW * 0.48;
+  // East Turkistan flag on the front of the tall crown
+  const flagW = crownW * 0.82;
+  const flagH = crownH * 0.38;
+  const flagX = headCenterX - flagW / 2;
   const flagY = crownTop + crownH * 0.22;
   drawEastTurkistanFlag(ctx, flagX, flagY, flagW, flagH);
 
